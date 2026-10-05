@@ -37,6 +37,9 @@ python -m pip install ollama
 
 
 ---Conectar la api a tu proyecto de visual: 
+
 regresar a la carpeta desde la terminal: cd ..\Ollama
+
 entrar en entorno: .\.venv\Scripts\activate
+
 cargar el http: python -m uvicorn api:app --reload
