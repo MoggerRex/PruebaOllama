@@ -38,7 +38,9 @@ python -m pip install ollama
 
 ---Conectar la api a tu proyecto de visual: 
 
-regresar a la carpeta desde la terminal: cd ..\Ollama
+Primero corre tu proyecto: npm run dev
+
+en otra terminal en el mismo proyecto, regresar a la carpeta desde la terminal: cd ..\Ollama
 
 entrar en entorno: .\.venv\Scripts\activate
 
