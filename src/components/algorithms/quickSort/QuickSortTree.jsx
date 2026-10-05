@@ -4,14 +4,16 @@ export default function QuickSortTree({ currentStep }) {
   if (!currentStep) {
     return (
       <div style={{ textAlign: 'center', padding: '2rem', color: '#666' }}>
-        Presiona "Cargar Quicksort con Llama" para iniciar la simulación.
+        Ingresa tus 7 números arriba y haz clic en "Iniciar Quicksort".
       </div>
     );
   }
 
   const { array, pivotIndex, comparingIndices = [], swappedIndices = [], explanation } = currentStep;
 
-  // Asigna colores según el estado que reportó Llama en el paso
+  // Determinar valor máximo para escalar la altura de las barras
+  const maxVal = Math.max(...array, 1);
+
   const getBarColor = (index) => {
     if (index === pivotIndex) return '#ec4899';             // Rosa: Pivote
     if (swappedIndices.includes(index)) return '#ef4444';   // Rojo: Intercambiado
@@ -21,7 +23,7 @@ export default function QuickSortTree({ currentStep }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.5rem', width: '100%' }}>
-      {/* Gráfico de Barras Básico */}
+      {/* Contenedor Gráfico de Barras */}
       <div style={{
         display: 'flex',
         alignItems: 'flex-end',
@@ -32,27 +34,30 @@ export default function QuickSortTree({ currentStep }) {
         borderBottom: '2px solid #ccc',
         paddingBottom: '8px'
       }}>
-        {array.map((value, idx) => (
-          <div
-            key={idx}
-            style={{
-              height: `${Math.max(value * 15, 25)}px`,
-              width: '40px',
-              backgroundColor: getBarColor(idx),
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'flex-end',
-              alignItems: 'center',
-              color: 'white',
-              fontWeight: 'bold',
-              borderRadius: '4px 4px 0 0',
-              transition: 'all 0.3s ease',
-              paddingBottom: '4px'
-            }}
-          >
-            <span style={{ fontSize: '12px' }}>{value}</span>
-          </div>
-        ))}
+        {array.map((value, idx) => {
+          const barHeight = Math.max((value / maxVal) * 160, 24);
+          return (
+            <div
+              key={idx}
+              style={{
+                height: `${barHeight}px`,
+                width: '45px',
+                backgroundColor: getBarColor(idx),
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'flex-end',
+                alignItems: 'center',
+                color: 'white',
+                fontWeight: 'bold',
+                borderRadius: '4px 4px 0 0',
+                transition: 'all 0.3s ease',
+                paddingBottom: '4px'
+              }}
+            >
+              <span style={{ fontSize: '12px' }}>{value}</span>
+            </div>
+          );
+        })}
       </div>
 
       {/* Leyenda de colores */}
@@ -63,12 +68,12 @@ export default function QuickSortTree({ currentStep }) {
         <span><strong style={{ color: '#3b82f6' }}>■</strong> Normal</span>
       </div>
 
-      {/* Explicación generada por Llama */}
+      {/* Explicación en Español del Paso Actual */}
       <div style={{
         backgroundColor: '#f3f4f6',
         padding: '1rem',
         borderRadius: '8px',
-        maxWidth: '500px',
+        maxWidth: '550px',
         width: '100%',
         textAlign: 'center',
         boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
