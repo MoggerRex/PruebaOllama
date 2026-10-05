@@ -1,10 +1,9 @@
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import './App.css';
 import { useState, useEffect } from 'react';
+import QuickSortVisualizer from './components/algorithms/quickSort/QuickSortVisualizer.jsx';
 
 function App() {
+  const [activeTab, setActiveTab] = useState('quicksort'); // 'chat' o 'quicksort'
   const [prompt, setPrompt] = useState('');
   const [response, setResponse] = useState('');
   const [loading, setLoading] = useState(false);
@@ -60,27 +59,64 @@ function App() {
         </span>
       </header>
 
-      <main className="chat-box">
-        <form onSubmit={handleSubmit} className="form-container">
-          <textarea
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            placeholder="Escribe tu duda de programación aquí..."
-            rows={4}
-            disabled={loading}
-          />
-          <button type="submit" disabled={loading || !prompt.trim()}>
-            {loading ? 'Consultando...' : 'Enviar Pregunta'}
-          </button>
-        </form>
+      {/* Navegación por pestañas */}
+      <nav style={{ display: 'flex', justifyContent: 'center', gap: '10px', margin: '15px 0' }}>
+        <button
+          onClick={() => setActiveTab('quicksort')}
+          style={{
+            padding: '8px 16px',
+            backgroundColor: activeTab === 'quicksort' ? '#2563eb' : '#e5e7eb',
+            color: activeTab === 'quicksort' ? 'white' : '#374151',
+            border: 'none',
+            borderRadius: '6px',
+            cursor: 'pointer',
+            fontWeight: 'bold'
+          }}
+        >
+          Visualizador Quicksort
+        </button>
+        <button
+          onClick={() => setActiveTab('chat')}
+          style={{
+            padding: '8px 16px',
+            backgroundColor: activeTab === 'chat' ? '#2563eb' : '#e5e7eb',
+            color: activeTab === 'chat' ? 'white' : '#374151',
+            border: 'none',
+            borderRadius: '6px',
+            cursor: 'pointer',
+            fontWeight: 'bold'
+          }}
+        >
+          Chat Libre
+        </button>
+      </nav>
 
-        {response && (
-          <div className="response-box">
-            <h3>Respuesta del Asistente:</h3>
-            <p className="response-text">{response}</p>
-          </div>
-        )}
-      </main>
+      {/* Contenido según la pestaña seleccionada */}
+      {activeTab === 'quicksort' ? (
+        <QuickSortVisualizer />
+      ) : (
+        <main className="chat-box">
+          <form onSubmit={handleSubmit} className="form-container">
+            <textarea
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              placeholder="Escribe tu duda de programación aquí..."
+              rows={4}
+              disabled={loading}
+            />
+            <button type="submit" disabled={loading || !prompt.trim()}>
+              {loading ? 'Consultando...' : 'Enviar Pregunta'}
+            </button>
+          </form>
+
+          {response && (
+            <div className="response-box">
+              <h3>Respuesta del Asistente:</h3>
+              <p className="response-text">{response}</p>
+            </div>
+          )}
+        </main>
+      )}
     </div>
   );
 }
