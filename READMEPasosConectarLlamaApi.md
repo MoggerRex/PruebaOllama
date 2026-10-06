@@ -17,15 +17,18 @@ If you are developing a production application, we recommend using TypeScript wi
 
 ##Pasos para correr el proyecto:
 
+Paso 1 - Iniciar Ollama
+
 Iniciar ollama: ollama run llama3.2:3b
 Version de ollama: 
-Cerrar chat de ollama: ctrl D
+Cerrar chat de ollama: ctrl D o \bye
 
 extenciones de python:
 pylance
 
-Crear carpeta para llama
 
+
+Paso 2 - Environment y Paquetes
 
 ---en powershell de visual studio code:
 
@@ -33,17 +36,18 @@ python -m venv .venv
 
 .\.venv\Scripts\Activate.ps1
 
-python -m pip install ollama
+pip install -r requirements.txt
 
 
----Conectar la api a tu proyecto de visual: 
+Paso 3 - Correr el proyecto
 
-Primero corre tu proyecto: npm run dev
 
-en otra terminal en el mismo proyecto, regresar a la carpeta desde la terminal: cd ..\Ollama
+Primero corre tu proyecto: npm run dev (npm install antes si es la primera vez que instalas el proyecto)
 
-entrar en entorno: .\.venv\Scripts\activate
+Revisar que el entorno este activado: .\.venv\Scripts\activate
 
-entrar al entorno si tu api esta en el proyecto: .\.venv\Scripts\activate 
+en otra terminal en el mismo proyecto, ir a la carpeta desde la terminal: cd ..\Ollama
 
-cargar el http: python -m uvicorn api:app --reload
+Correr este comando: python -m uvicorn api:app --reload
+
+Debes correr ese comando en la carpeta donde tengas el api.py
