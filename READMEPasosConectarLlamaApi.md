@@ -44,4 +44,6 @@ en otra terminal en el mismo proyecto, regresar a la carpeta desde la terminal: 
 
 entrar en entorno: .\.venv\Scripts\activate
 
+entrar al entorno si tu api esta en el proyecto: .\.venv\Scripts\activate 
+
 cargar el http: python -m uvicorn api:app --reload
