@@ -1,0 +1,31 @@
+Iniciar ollama: ollama run llama3.2:3b
+Version de ollama: 
+Cerrar chat de ollama: ctrl D
+
+extenciones de python:
+pylance
+
+Crear carpeta para llama
+
+---en powershell de visual studio code:
+
+python -m venv .venv
+
+.\.venv\Scripts\Activate.ps1
+
+python -m pip install ollama
+
+
+---Hacer cosas de api de ollama 
+regresar a la carpeta desde la terminal: cd ..\Ollama
+entrar en entorno: .\.venv\Scripts\activate
+cargar el http: python -m uvicorn api:app --reload
+
+
+Llama con ascii
+
+Metodología Lora - reduce la ram utilizada
+Unsloth - librería de python y reduce mas la ram utilizada
+
+QUICKSORT
+
