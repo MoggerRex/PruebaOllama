@@ -19,6 +19,32 @@ export async function askLlama(prompt, apiUrl = API_URL) {
   return data.answer;
 }
 
+
+/**
+ * Recibe el arreglo inicial e instruye a Llama a generar las explicaciones paso a paso en JSON.
+ */
+export async function fetchLlamaExplanations(initialArray, apiUrl = API_URL) {
+  const prompt = `Eres un asistente educativo de algoritmos.
+Analiza la ejecución de Quicksort para los siguientes números: ${JSON.stringify(initialArray)}.
+
+Tu tarea es devolver un JSON estricto con un arreglo llamado "explanations".
+Cada elemento del arreglo debe explicar brevemente el paso correspondiente del algoritmo en español, manteniendo un tono claro y didáctico.
+
+Ejemplo de formato esperado:
+{
+  "explanations": [
+    "En el paso 1 elegimos el pivote y revisamos el rango del arreglo.",
+    "En el paso 2 comparamos los valores para ubicar los elementos menores y mayores que el pivote."
+  ]
+}
+
+Responde ÚNICAMENTE con el objeto JSON estricto, sin bloques de texto adicionales.`;
+
+  const rawAnswer = await askLlama(prompt, apiUrl);
+  const cleanedAnswer = rawAnswer.replace(/^```json\s*/i, '').replace(/```\s*$/, '').trim();
+  return JSON.parse(cleanedAnswer);
+}
+
 /**
  * Solicita los pasos de un algoritmo de búsqueda o de ordenamiento a Llama
  * devolviendo un objeto JSON estructurado con la secuencia de pasos y explicaciones.

@@ -1,6 +1,6 @@
 import { useState } from 'react';
+import { fetchLlamaExplanations } from '../../../services/llamaService.js';
 
-// Algoritmo Quicksort determinista que registra cada paso con precisión
 function generateQuickSortSteps(arr) {
   const steps = [];
   const array = [...arr];
@@ -15,50 +15,48 @@ function generateQuickSortSteps(arr) {
 
   function partition(arrCopy, low, high) {
     const pivotValue = arrCopy[high];
-    const pivotIndex = high;
     let i = low - 1;
 
     steps.push({
       stepIndex: steps.length + 1,
       array: [...arrCopy],
-      pivotIndex: pivotIndex,
+      pivotIndex: high,
       comparingIndices: [],
       swappedIndices: [],
-      explanation: `Seleccionado pivote ${pivotValue} en el índice ${pivotIndex}. Analizando subarreglo de índice ${low} a ${high}.`
+      explanation: `Seleccionado pivote ${pivotValue} en el índice ${high}. Analizando rango [${low} a ${high}].`,
+      aiExplanation: ''
     });
 
     for (let j = low; j < high; j++) {
-      steps.push({
-        stepIndex: steps.length + 1,
-        array: [...arrCopy],
-        pivotIndex: pivotIndex,
-        comparingIndices: [j, pivotIndex],
-        swappedIndices: [],
-        explanation: `Comparando elemento ${arrCopy[j]} en índice ${j} con el pivote ${pivotValue}.`
-      });
-
       if (arrCopy[j] < pivotValue) {
         i++;
-        [arrCopy[i], arrCopy[j]] = [arrCopy[j], arrCopy[i]];
-        steps.push({
-          stepIndex: steps.length + 1,
-          array: [...arrCopy],
-          pivotIndex: pivotIndex,
-          comparingIndices: [],
-          swappedIndices: [i, j],
-          explanation: `Intercambiando ${arrCopy[i]} (índice ${i}) con ${arrCopy[j]} (índice ${j}).`
-        });
+        if (i !== j) {
+          [arrCopy[i], arrCopy[j]] = [arrCopy[j], arrCopy[i]];
+          steps.push({
+            stepIndex: steps.length + 1,
+            array: [...arrCopy],
+            pivotIndex: high,
+            comparingIndices: [],
+            swappedIndices: [i, j],
+            explanation: `Intercambiando ${arrCopy[i]} e índice ${j} porque es menor que el pivote ${pivotValue}.`,
+            aiExplanation: ''
+          });
+        }
       }
     }
 
-    [arrCopy[i + 1], arrCopy[high]] = [arrCopy[high], arrCopy[i + 1]];
+    if (i + 1 !== high) {
+      [arrCopy[i + 1], arrCopy[high]] = [arrCopy[high], arrCopy[i + 1]];
+    }
+
     steps.push({
       stepIndex: steps.length + 1,
       array: [...arrCopy],
       pivotIndex: i + 1,
       comparingIndices: [],
       swappedIndices: [i + 1, high],
-      explanation: `Colocando pivote ${pivotValue} en su posición ordenada final (índice ${i + 1}).`
+      explanation: `Pivote ${pivotValue} colocado en su posición definitiva (índice ${i + 1}).`,
+      aiExplanation: ''
     });
 
     return i + 1;
@@ -66,14 +64,14 @@ function generateQuickSortSteps(arr) {
 
   quickSortHelper(array, 0, array.length - 1);
 
-  // Paso final con el arreglo completamente ordenado
   steps.push({
     stepIndex: steps.length + 1,
     array: [...array],
     pivotIndex: null,
     comparingIndices: [],
     swappedIndices: [],
-    explanation: '¡Proceso finalizado! El arreglo ha sido completamente ordenado.'
+    explanation: '¡Proceso finalizado! El arreglo ha sido ordenado.',
+    aiExplanation: ''
   });
 
   return steps;
@@ -85,17 +83,33 @@ export default function useQuickSortLogic() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const loadQuickSortSteps = async (initialArray = [8, 3, 1, 7, 0, 10, 2]) => {
+  const loadQuickSortSteps = async (initialArray) => {
     setLoading(true);
     setError(null);
     setCurrentStepIndex(0);
 
     try {
-      const generatedSteps = generateQuickSortSteps(initialArray);
-      setSteps(generatedSteps);
+      // 1. Generar la secuencia gráfica local
+      const baseSteps = generateQuickSortSteps(initialArray);
+
+      // 2. Obtener explicaciones de Llama y asignarlas al campo aiExplanation
+      try {
+        const llamaData = await fetchLlamaExplanations(initialArray);
+        if (llamaData && Array.isArray(llamaData.explanations)) {
+          baseSteps.forEach((step, idx) => {
+            if (llamaData.explanations[idx]) {
+              step.aiExplanation = llamaData.explanations[idx];
+            }
+          });
+        }
+      } catch (llamaErr) {
+        console.warn('No se pudo cargar la respuesta de Llama, continuando solo con la lógica base:', llamaErr);
+      }
+
+      setSteps(baseSteps);
     } catch (err) {
       console.error(err);
-      setError('Error al generar los pasos de Quicksort: ' + err.message);
+      setError('Error al generar los pasos: ' + err.message);
     } finally {
       setLoading(false);
     }
