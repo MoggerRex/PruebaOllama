@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { fetchLlamaExplanations } from '../../../services/llamaService.js';
+import { fetchAlgorithmOverview } from '../../../services/llamaService.js';
 
 function generateQuickSortSteps(arr) {
   const steps = [];
@@ -24,7 +24,6 @@ function generateQuickSortSteps(arr) {
       comparingIndices: [],
       swappedIndices: [],
       explanation: `Seleccionado pivote ${pivotValue} en el índice ${high}. Analizando rango [${low} a ${high}].`,
-      aiExplanation: ''
     });
 
     for (let j = low; j < high; j++) {
@@ -39,7 +38,6 @@ function generateQuickSortSteps(arr) {
             comparingIndices: [],
             swappedIndices: [i, j],
             explanation: `Intercambiando ${arrCopy[i]} e índice ${j} porque es menor que el pivote ${pivotValue}.`,
-            aiExplanation: ''
           });
         }
       }
@@ -56,7 +54,6 @@ function generateQuickSortSteps(arr) {
       comparingIndices: [],
       swappedIndices: [i + 1, high],
       explanation: `Pivote ${pivotValue} colocado en su posición definitiva (índice ${i + 1}).`,
-      aiExplanation: ''
     });
 
     return i + 1;
@@ -71,7 +68,6 @@ function generateQuickSortSteps(arr) {
     comparingIndices: [],
     swappedIndices: [],
     explanation: '¡Proceso finalizado! El arreglo ha sido ordenado.',
-    aiExplanation: ''
   });
 
   return steps;
@@ -82,28 +78,25 @@ export default function useQuickSortLogic() {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [algorithmOverview, setAlgorithmOverview] = useState('');
 
-  const loadQuickSortSteps = async (initialArray) => {
+  const loadQuickSortSteps = async (initialArray, selectedCharacter = 'Naruto') => {
     setLoading(true);
     setError(null);
     setCurrentStepIndex(0);
+    setAlgorithmOverview('');
 
     try {
       // 1. Generar la secuencia gráfica local
       const baseSteps = generateQuickSortSteps(initialArray);
 
-      // 2. Obtener explicaciones de Llama y asignarlas al campo aiExplanation
+      // 2. Obtener una explicación general del algoritmo, independiente de los pasos
       try {
-        const llamaData = await fetchLlamaExplanations(initialArray);
-        if (llamaData && Array.isArray(llamaData.explanations)) {
-          baseSteps.forEach((step, idx) => {
-            if (llamaData.explanations[idx]) {
-              step.aiExplanation = llamaData.explanations[idx];
-            }
-          });
-        }
+        const overview = await fetchAlgorithmOverview('Quick Sort', selectedCharacter);
+        setAlgorithmOverview(overview);
       } catch (llamaErr) {
-        console.warn('No se pudo cargar la respuesta de Llama, continuando solo con la lógica base:', llamaErr);
+        console.warn('No se pudo cargar la explicación general de Llama:', llamaErr);
+        setAlgorithmOverview('No se pudo generar la explicación general del algoritmo.');
       }
 
       setSteps(baseSteps);
@@ -133,6 +126,7 @@ export default function useQuickSortLogic() {
     currentStepIndex,
     loading,
     error,
+    algorithmOverview,
     loadQuickSortSteps,
     nextStep,
     prevStep

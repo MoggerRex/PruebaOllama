@@ -1,6 +1,21 @@
-import React from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 
-export default function QuickSortTree({ currentStep }) {
+export default function QuickSortTree({ currentStep, algorithmOverview }) {
+  const visualizerColumnRef = useRef(null);
+  const [visualizerHeight, setVisualizerHeight] = useState(null);
+
+  useLayoutEffect(() => {
+    const visualizerColumn = visualizerColumnRef.current;
+    if (!visualizerColumn) return;
+
+    const resizeObserver = new ResizeObserver(() => {
+      setVisualizerHeight(visualizerColumn.getBoundingClientRect().height);
+    });
+
+    resizeObserver.observe(visualizerColumn);
+    return () => resizeObserver.disconnect();
+  }, [currentStep]);
+
   if (!currentStep) {
     return (
       <div style={{ textAlign: 'center', padding: '2rem', color: '#9ca3af' }}>
@@ -9,7 +24,7 @@ export default function QuickSortTree({ currentStep }) {
     );
   }
 
-  const { array, pivotIndex, comparingIndices = [], swappedIndices = [], explanation, aiExplanation } = currentStep;
+  const { array, pivotIndex, comparingIndices = [], swappedIndices = [], explanation } = currentStep;
 
   // Determinar valor máximo para escalar la altura de las barras
   const maxVal = Math.max(...array, 1);
@@ -23,7 +38,7 @@ export default function QuickSortTree({ currentStep }) {
 
   return (
     <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1.25rem', width: '100%' }}>
-      <div style={{ flex: '1.6', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.5rem' }}>
+      <div ref={visualizerColumnRef} style={{ flex: '1.6', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.5rem' }}>
         {/* Contenedor Gráfico de Barras */}
         <div style={{
           display: 'flex',
@@ -92,7 +107,11 @@ export default function QuickSortTree({ currentStep }) {
       <div style={{
         flex: '0.95',
         minWidth: '260px',
+        minHeight: 0,
         maxWidth: '360px',
+        height: visualizerHeight === null ? undefined : `${visualizerHeight}px`,
+        boxSizing: 'border-box',
+        overflowY: 'auto',
         backgroundColor: '#0f172a',
         border: '1px solid #3b82f6',
         borderRadius: '12px',
@@ -105,13 +124,13 @@ export default function QuickSortTree({ currentStep }) {
           <strong style={{ color: '#60a5fa', fontSize: '14px' }}>Aportación del chat</strong>
         </div>
 
-        {aiExplanation ? (
+        {algorithmOverview ? (
           <p style={{ margin: 0, lineHeight: '1.6', fontSize: '13px', whiteSpace: 'pre-wrap' }}>
-            {aiExplanation}
+            {algorithmOverview}
           </p>
         ) : (
           <p style={{ margin: 0, color: '#94a3b8', lineHeight: '1.6', fontSize: '13px' }}>
-            La respuesta de Llama aparecerá aquí para este paso.
+            La explicación general de Quick Sort aparecerá aquí.
           </p>
         )}
       </div>

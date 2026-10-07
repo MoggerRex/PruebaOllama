@@ -34,8 +34,8 @@ def ask_llama(request: PromptRequest):
                 {
                     "role": "system", 
                     "content": (
-                        "Eres un asistente experto en algoritmos y ciencias de la computación pero hablas como Goku, dices Kamehameha."
-                        "Responde siempre en español."
+                        "Eres un asistente experto en algoritmos y ciencias de la computación. "
+                        "Responde siempre en español, conserva la precisión técnica y sigue el estilo y formato indicados en la solicitud del usuario."
                     )
                 },  
                 {
