@@ -116,3 +116,20 @@ button:disabled {
   line-height: 1.6;
   white-space: pre-wrap;
 }
+
+.hash-search { display: grid; gap: 18px; text-align: left; }
+.hash-search h2 { color: #38bdf8; }
+.hash-search__form, .hash-search__form label { display: grid; gap: 8px; }
+.hash-search__fields, .hash-search__controls { display: flex; flex-wrap: wrap; gap: 12px; }
+.hash-search__fields label { flex: 1; min-width: 140px; }
+.hash-search input { width: 100%; padding: 10px; border: 1px solid #475569; border-radius: 6px; background: #0f172a; color: #f8fafc; }
+.hash-table { display: grid; gap: 8px; }
+.hash-table__bucket { display: flex; align-items: center; gap: 16px; padding: 10px; border: 2px solid #475569; border-radius: 8px; }
+.hash-table__bucket.is-active { border-color: #38bdf8; background: #172554; }
+.hash-table__chain { display: flex; flex-wrap: wrap; gap: 8px; }
+.hash-table__entry { padding: 4px 8px; border-radius: 4px; background: #334155; }
+.hash-table__entry.is-current { background: #facc15; color: #172554; }
+.hash-table__entry.is-found { background: #34d399; color: #052e16; }
+.hash-search__explanation { padding: 16px; border-left: 4px solid #38bdf8; border-radius: 8px; background: #0f172a; }
+.hash-search__explanation h3 { margin-bottom: 8px; }
+.hash-search__form [role="alert"] { color: #fca5a5; }

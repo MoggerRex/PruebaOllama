@@ -1,6 +1,7 @@
 import './App.css';
 import { useState, useEffect } from 'react';
 import QuickSortVisualizer from './components/algorithms/quickSort/QuickSortVisualizer.jsx';
+import HashSearchVisualizer from './components/algorithms/hashSearch/HashSearchVisualizer.jsx';
 
 function App() {
   const [activeTab, setActiveTab] = useState('quicksort'); // 'chat' o 'quicksort'
@@ -60,7 +61,11 @@ function App() {
       </header>
 
       {/* Navegación por pestañas */}
-      <nav style={{ display: 'flex', justifyContent: 'center', gap: '10px', margin: '15px 0' }}>
+      <nav aria-label="Algoritmos y chat" style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '10px', margin: '15px 0' }}>
+        <button type="button" aria-pressed={activeTab === 'hash'} onClick={() => setActiveTab('hash')}
+          style={{ backgroundColor: activeTab === 'hash' ? '#2563eb' : '#e5e7eb', color: activeTab === 'hash' ? 'white' : '#374151' }}>
+          Búsqueda hash
+        </button>
         <button
           onClick={() => setActiveTab('quicksort')}
           style={{
@@ -94,6 +99,8 @@ function App() {
       {/* Contenido según la pestaña seleccionada */}
       {activeTab === 'quicksort' ? (
         <QuickSortVisualizer />
+      ) : activeTab === 'hash' ? (
+        <HashSearchVisualizer />
       ) : (
         <main className="chat-box">
           <form onSubmit={handleSubmit} className="form-container">
