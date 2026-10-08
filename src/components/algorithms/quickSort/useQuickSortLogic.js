@@ -4,22 +4,30 @@ import { fetchAlgorithmOverview } from '../../../services/llamaService.js';
 function generateQuickSortSteps(arr) {
   const steps = [];
   const array = [...arr];
+  // Cada barra tiene un id fijo que se mueve junto con su valor
+  const ids = arr.map((_, i) => i);
 
-  function quickSortHelper(arrCopy, low, high) {
+  const swap = (a, b) => {
+    [array[a], array[b]] = [array[b], array[a]];
+    [ids[a], ids[b]] = [ids[b], ids[a]];
+  };
+
+  function quickSortHelper(low, high) {
     if (low < high) {
-      const pivotIndex = partition(arrCopy, low, high);
-      quickSortHelper(arrCopy, low, pivotIndex - 1);
-      quickSortHelper(arrCopy, pivotIndex + 1, high);
+      const pivotIndex = partition(low, high);
+      quickSortHelper(low, pivotIndex - 1);
+      quickSortHelper(pivotIndex + 1, high);
     }
   }
 
-  function partition(arrCopy, low, high) {
-    const pivotValue = arrCopy[high];
+  function partition(low, high) {
+    const pivotValue = array[high];
     let i = low - 1;
 
     steps.push({
       stepIndex: steps.length + 1,
-      array: [...arrCopy],
+      array: [...array],
+      ids: [...ids],
       pivotIndex: high,
       comparingIndices: [],
       swappedIndices: [],
@@ -27,29 +35,31 @@ function generateQuickSortSteps(arr) {
     });
 
     for (let j = low; j < high; j++) {
-      if (arrCopy[j] < pivotValue) {
+      if (array[j] < pivotValue) {
         i++;
         if (i !== j) {
-          [arrCopy[i], arrCopy[j]] = [arrCopy[j], arrCopy[i]];
+          swap(i, j);
           steps.push({
             stepIndex: steps.length + 1,
-            array: [...arrCopy],
+            array: [...array],
+            ids: [...ids],
             pivotIndex: high,
             comparingIndices: [],
             swappedIndices: [i, j],
-            explanation: `Intercambiando ${arrCopy[i]} e índice ${j} porque es menor que el pivote ${pivotValue}.`,
+            explanation: `Intercambiando ${array[i]} e índice ${j} porque es menor que el pivote ${pivotValue}.`,
           });
         }
       }
     }
 
     if (i + 1 !== high) {
-      [arrCopy[i + 1], arrCopy[high]] = [arrCopy[high], arrCopy[i + 1]];
+      swap(i + 1, high);
     }
 
     steps.push({
       stepIndex: steps.length + 1,
-      array: [...arrCopy],
+      array: [...array],
+      ids: [...ids],
       pivotIndex: i + 1,
       comparingIndices: [],
       swappedIndices: [i + 1, high],
@@ -59,11 +69,12 @@ function generateQuickSortSteps(arr) {
     return i + 1;
   }
 
-  quickSortHelper(array, 0, array.length - 1);
+  quickSortHelper(0, array.length - 1);
 
   steps.push({
     stepIndex: steps.length + 1,
     array: [...array],
+    ids: [...ids],
     pivotIndex: null,
     comparingIndices: [],
     swappedIndices: [],

@@ -1,4 +1,5 @@
 import { useLayoutEffect, useRef, useState } from 'react';
+import { motion } from 'framer-motion';
 
 export default function QuickSortTree({ currentStep, algorithmOverview }) {
   const visualizerColumnRef = useRef(null);
@@ -25,9 +26,10 @@ export default function QuickSortTree({ currentStep, algorithmOverview }) {
   }
 
   const { array, pivotIndex, comparingIndices = [], swappedIndices = [], explanation } = currentStep;
+  // Si algún paso no trae ids, usa la posición como respaldo
+  const ids = currentStep.ids ?? array.map((_, i) => i);
 
-  // Determinar valor máximo para escalar la altura de las barras
-  const maxVal = Math.max(...array, 1);
+  const maxVal = Math.max(...array, 1)
 
   const getBarColor = (index) => {
     if (index === pivotIndex) return '#ec4899';             // Rosa: Pivote
@@ -39,42 +41,60 @@ export default function QuickSortTree({ currentStep, algorithmOverview }) {
   return (
     <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1.25rem', width: '100%' }}>
       <div ref={visualizerColumnRef} style={{ flex: '1.6', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.5rem' }}>
-        {/* Contenedor Gráfico de Barras */}
-        <div style={{
+{/* Contenedor Gráfico de Barras */}
+<div style={{
+  display: 'flex',
+  alignItems: 'flex-end',
+  justifyContent: 'center',
+  gap: '12px',
+  height: '200px',
+  width: '100%',
+  borderBottom: '2px solid #4b5563',
+  paddingBottom: '8px'
+}}>
+  {array.map((value, idx) => {
+    const barHeight = Math.max((value / maxVal) * 160, 24);
+    const isPivot = idx === pivotIndex;
+    const isSwapped = swappedIndices.includes(idx);
+
+    return (
+      <motion.div
+        key={ids[idx]}               // identidad estable: la barra "viaja" al intercambiarse
+        layout="position"            // anima solo el movimiento horizontal
+        initial={{ height: 0, opacity: 0 }}
+        animate={{
+          height: barHeight,         // crece / decrece
+          opacity: 1,
+          backgroundColor: getBarColor(idx),
+          scale: isPivot ? 1.08 : 1,
+          y: isSwapped ? -10 : 0     // pequeño salto al intercambiarse
+        }}
+        exit={{ height: 0, opacity: 0 }}
+        transition={{
+          layout: { type: 'spring', stiffness: 260, damping: 26 },
+          height: { type: 'spring', stiffness: 200, damping: 20 },
+          backgroundColor: { duration: 0.3 },
+          scale: { type: 'spring', stiffness: 300, damping: 18 },
+          y: { type: 'spring', stiffness: 400, damping: 15 }
+        }}
+        style={{
+          width: '45px',
           display: 'flex',
-          alignItems: 'flex-end',
-          justifyContent: 'center',
-          gap: '12px',
-          height: '200px',
-          width: '100%',
-          borderBottom: '2px solid #4b5563',
-          paddingBottom: '8px'
-        }}>
-          {array.map((value, idx) => {
-            const barHeight = Math.max((value / maxVal) * 160, 24);
-            return (
-              <div
-                key={idx}
-                style={{
-                  height: `${barHeight}px`,
-                  width: '45px',
-                  backgroundColor: getBarColor(idx),
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'flex-end',
-                  alignItems: 'center',
-                  color: 'white',
-                  fontWeight: 'bold',
-                  borderRadius: '4px 4px 0 0',
-                  transition: 'all 0.3s ease',
-                  paddingBottom: '4px'
-                }}
-              >
-                <span style={{ fontSize: '12px' }}>{value}</span>
-              </div>
-            );
-          })}
-        </div>
+          flexDirection: 'column',
+          justifyContent: 'flex-end',
+          alignItems: 'center',
+          color: 'white',
+          fontWeight: 'bold',
+          borderRadius: '4px 4px 0 0',
+          paddingBottom: '4px',
+          overflow: 'hidden'
+        }}
+      >
+        <span style={{ fontSize: '12px' }}>{value}</span>
+      </motion.div>
+    );
+  })}
+</div>
 
         {/* Leyenda de colores */}
         <div style={{ display: 'flex', gap: '15px', fontSize: '12px', color: '#e5e7eb', flexWrap: 'wrap', justifyContent: 'center' }}>
