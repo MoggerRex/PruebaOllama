@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import QuickSortTree from './QuickSortTree.jsx';
 import useQuickSortLogic from './useQuickSortLogic.js';
+import { LLAMA_PERSONALITIES } from '../../../services/llamaService.js';
 
 export default function QuickSortVisualizer() {
   const {
@@ -9,6 +10,7 @@ export default function QuickSortVisualizer() {
     currentStepIndex,
     loading,
     error,
+    algorithmOverview,
     loadQuickSortSteps,
     nextStep,
     prevStep
@@ -16,6 +18,7 @@ export default function QuickSortVisualizer() {
 
   // Estado para gestionar los 7 valores ingresados por el usuario
   const [inputNumbers, setInputNumbers] = useState([8, 3, 1, 7, 0, 10, 2]);
+  const [selectedCharacter, setSelectedCharacter] = useState('Naruto');
 
   const handleInputChange = (index, value) => {
     const updated = [...inputNumbers];
@@ -27,13 +30,13 @@ export default function QuickSortVisualizer() {
     e.preventDefault();
     // Reemplaza valores vacíos o no numéricos por 0
     const cleanNumbers = inputNumbers.map((num) => (isNaN(num) || num === '' ? 0 : Number(num)));
-    loadQuickSortSteps(cleanNumbers);
+    loadQuickSortSteps(cleanNumbers, selectedCharacter);
   };
 
   const handleRandomize = () => {
     const randomArray = Array.from({ length: 7 }, () => Math.floor(Math.random() * 20));
     setInputNumbers(randomArray);
-    loadQuickSortSteps(randomArray);
+    loadQuickSortSteps(randomArray, selectedCharacter);
   };
 
   return (
@@ -98,12 +101,29 @@ export default function QuickSortVisualizer() {
             Aleatorios
           </button>
         </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', marginTop: '14px' }}>
+          <label htmlFor="llama-personality" style={{ fontSize: '14px', fontWeight: '500' }}>
+            Estilo de la aportación de Llama
+          </label>
+          <select
+            id="llama-personality"
+            value={selectedCharacter}
+            onChange={(event) => setSelectedCharacter(event.target.value)}
+            disabled={loading}
+            style={{ padding: '8px 10px', borderRadius: '6px', border: '1px solid #64748b', minWidth: '190px' }}
+          >
+            {LLAMA_PERSONALITIES.map(({ name }) => (
+              <option key={name} value={name}>{name}</option>
+            ))}
+          </select>
+        </div>
       </form>
 
       {error && <div style={{ color: 'red', textAlign: 'center', marginBottom: '15px' }}>{error}</div>}
 
       {/* Visualización en Barras */}
-      <QuickSortTree currentStep={currentStep} />
+      <QuickSortTree currentStep={currentStep} algorithmOverview={algorithmOverview} />
 
       {/* Controles de Reproducción Paso a Paso */}
       {steps.length > 0 && (
