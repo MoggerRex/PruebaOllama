@@ -133,3 +133,12 @@ button:disabled {
 .hash-search__explanation { padding: 16px; border-left: 4px solid #38bdf8; border-radius: 8px; background: #0f172a; }
 .hash-search__explanation h3 { margin-bottom: 8px; }
 .hash-search__form [role="alert"] { color: #fca5a5; }
+
+.container { max-width: 1200px; }
+.algorithm-layout { display: grid; grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr); gap: 24px; align-items: start; }
+.algorithm-overview { padding: 16px; background: #0f172a; border-radius: 8px; }
+.algorithm-overview label { display: grid; gap: 6px; }
+.algorithm-overview select { width: 100%; padding: 8px; background: #1e293b; color: #f8fafc; border: 1px solid #475569; border-radius: 6px; }
+.explanation-panel { margin-top: 20px; }
+.explanation-panel p { white-space: pre-wrap; line-height: 1.6; margin-top: 10px; }
+@media (max-width: 850px) { .algorithm-layout { grid-template-columns: minmax(0, 1fr); } }

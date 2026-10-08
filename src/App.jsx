@@ -2,6 +2,7 @@ import './App.css';
 import { useState, useEffect } from 'react';
 import QuickSortVisualizer from './components/algorithms/quickSort/QuickSortVisualizer.jsx';
 import HashSearchVisualizer from './components/algorithms/hashSearch/HashSearchVisualizer.jsx';
+import AlgorithmOverview from './components/common/AlgorithmOverview.jsx';
 
 function App() {
   const [activeTab, setActiveTab] = useState('quicksort'); // 'chat' o 'quicksort'
@@ -44,7 +45,7 @@ function App() {
       } else {
         setResponse(`Error: ${data.detail || 'Ocurrió un error inesperado.'}`);
       }
-    } catch (error) {
+    } catch {
       setResponse('Error de red o el servidor FastAPI no está corriendo.');
     } finally {
       setLoading(false);
@@ -98,9 +99,15 @@ function App() {
 
       {/* Contenido según la pestaña seleccionada */}
       {activeTab === 'quicksort' ? (
-        <QuickSortVisualizer />
+        <main className="algorithm-layout">
+          <QuickSortVisualizer />
+          <AlgorithmOverview key="quicksort" algorithm="Quick Sort" />
+        </main>
       ) : activeTab === 'hash' ? (
-        <HashSearchVisualizer />
+        <main className="algorithm-layout">
+          <HashSearchVisualizer />
+          <AlgorithmOverview key="hash" algorithm="Hash Search" />
+        </main>
       ) : (
         <main className="chat-box">
           <form onSubmit={handleSubmit} className="form-container">

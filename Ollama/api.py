@@ -1,7 +1,187 @@
+
+from enum import Enum
+from pathlib import Path
+from typing import Literal
+import json
+
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-from ollama import chat
+from ollama import chat, ResponseError
+from pydantic import BaseModel, ConfigDict
+
+
+# ============================================================
+# CONFIGURACIÓN
+# ============================================================
+
+OLLAMA_MODEL = "llama3.2:3b"
+
+CHARACTERS_PATH = (
+    Path(__file__).resolve().parent.parent
+    / "src"
+    / "config"
+    / "llamaCharacters.json"
+)
+
+CHARACTER_PROMPTS = json.loads(
+    CHARACTERS_PATH.read_text(encoding="utf-8")
+)
+
+CharacterType = Enum(
+    "CharacterType",
+    {name: name for name in CHARACTER_PROMPTS},
+    type=str
+)
+
+AlgorithmType = Literal[
+    "Hash Search",
+    "Quick Sort",
+    "Binary Search",
+    "Insertion Sort",
+    "Bubble Sort"
+]
+
+
+# ============================================================
+# DATOS TÉCNICOS DE LOS ALGORITMOS
+# ============================================================
+
+ALGORITHM_FACTS = {
+    "Hash Search": {
+        "concept": (
+            "Busca un elemento utilizando una función hash "
+            "para determinar dónde podría encontrarse."
+        ),
+        "steps": (
+            "Calcula el hash de la clave, localiza la cubeta "
+            "correspondiente y comprueba si contiene el elemento. "
+            "Si existen colisiones, utiliza encadenamiento para "
+            "recorrer los elementos de esa cubeta."
+        ),
+        "complexity": {
+            "best": "O(1)",
+            "average": "O(1) esperado con buena distribución y factor de carga acotado",
+            "worst": "O(n)",
+            "space": "O(n) para almacenar n elementos"
+        },
+        "uses": (
+            "Búsquedas rápidas por clave, como diccionarios "
+            "y tablas hash."
+        ),
+        "conditions": (
+            "Se utiliza una tabla hash con encadenamiento. "
+            "La construcción de la tabla requiere O(n) tiempo. "
+            "El promedio O(1) depende de una función hash adecuada "
+            "y un factor de carga controlado."
+        )
+    },
+
+    "Quick Sort": {
+        "concept": (
+            "Ordena elementos mediante particiones alrededor "
+            "de un pivote."
+        ),
+        "steps": (
+            "Selecciona el último elemento como pivote. "
+            "Reorganiza el arreglo colocando los menores o iguales "
+            "a un lado y los mayores al otro. "
+            "Aplica recursión a ambas particiones. "
+            "Termina cuando una partición tiene cero o un elemento."
+        ),
+        "complexity": {
+            "best": "O(n log n)",
+            "average": "O(n log n)",
+            "worst": "O(n²)",
+            "space": "O(log n) promedio y O(n) peor caso"
+        },
+        "uses": "Ordenar arreglos en memoria.",
+        "conditions": (
+            "Se considera una implementación recursiva in-place "
+            "con pivote final. La complejidad espacial corresponde "
+            "a la pila de llamadas."
+        )
+    },
+
+    "Binary Search": {
+        "concept": (
+            "Encuentra un elemento en un arreglo previamente ordenado."
+        ),
+        "steps": (
+            "Compara el objetivo con el elemento central. "
+            "Si son iguales, termina. "
+            "Si el objetivo es menor, continúa en la mitad izquierda; "
+            "si es mayor, continúa en la derecha. "
+            "Repite hasta encontrarlo o agotar el intervalo."
+        ),
+        "complexity": {
+            "best": "O(1)",
+            "average": "O(log n)",
+            "worst": "O(log n)",
+            "space": "O(1)"
+        },
+        "uses": "Buscar rápidamente en arreglos ordenados.",
+        "conditions": (
+            "Se utiliza la versión iterativa. "
+            "El arreglo debe estar ordenado."
+        )
+    },
+
+    "Insertion Sort": {
+        "concept": (
+            "Ordena elementos insertando cada uno "
+            "en su posición dentro de una sección ya ordenada."
+        ),
+        "steps": (
+            "Comienza con el primer elemento como sección ordenada. "
+            "Toma el siguiente elemento y desplaza hacia la derecha "
+            "los valores mayores para insertarlo en su posición. "
+            "Repite hasta ordenar todo el arreglo."
+        ),
+        "complexity": {
+            "best": "O(n)",
+            "average": "O(n²)",
+            "worst": "O(n²)",
+            "space": "O(1)"
+        },
+        "uses": (
+            "Arreglos pequeños o casi ordenados."
+        ),
+        "conditions": (
+            "Se considera la implementación iterativa in-place."
+        )
+    },
+
+    "Bubble Sort": {
+        "concept": (
+            "Ordena elementos comparando e intercambiando "
+            "pares adyacentes."
+        ),
+        "steps": (
+            "Recorre el arreglo comparando elementos vecinos. "
+            "Los intercambia si están desordenados. "
+            "Repite los recorridos hasta que no haya intercambios."
+        ),
+        "complexity": {
+            "best": "O(n)",
+            "average": "O(n²)",
+            "worst": "O(n²)",
+            "space": "O(1)"
+        },
+        "uses": (
+            "Enseñanza de algoritmos y arreglos pequeños; "
+            "no suele ser la mejor opción para grandes conjuntos."
+        ),
+        "conditions": (
+            "Se utiliza la versión optimizada que termina "
+            "si un recorrido no realiza intercambios."
+        )
+    }
+}
+
+
+# ============================================================
+# FASTAPI Y CORS
+# ============================================================
 
 app = FastAPI()
 
@@ -16,41 +196,246 @@ app.add_middleware(
     allow_headers=["Content-Type"],
 )
 
+
+# ============================================================
+# MODELOS DE SOLICITUD Y RESPUESTA
+# ============================================================
+
+class AlgorithmOverviewRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    algorithm: AlgorithmType
+    character: CharacterType
+
+
+class AlgorithmOverviewResponse(BaseModel):
+    algorithm: AlgorithmType
+    character: CharacterType
+    explanation: str
+
+
 class PromptRequest(BaseModel):
     prompt: str
-    
+
+
+# ============================================================
+# FUNCIONES AUXILIARES
+# ============================================================
+
+def get_character_profile(character: CharacterType) -> str:
+    char_info = CHARACTER_PROMPTS[character.value]
+
+    if isinstance(char_info, dict):
+        return json.dumps(
+            char_info,
+            ensure_ascii=False,
+            indent=2
+        )
+
+    return str(char_info)
+
+
+# ============================================================
+# ENDPOINT: EXPLICACIÓN DE ALGORITMOS CON PERSONAJES
+# ============================================================
+
+@app.post(
+    "/algorithm",
+    response_model=AlgorithmOverviewResponse
+)
+def get_algorithm(request: AlgorithmOverviewRequest):
+    try:
+        character_profile = get_character_profile(
+            request.character
+        )
+
+        facts = ALGORITHM_FACTS[request.algorithm]
+
+        system_prompt = f"""
+Eres un tutor experto en Estructuras de Datos y Algoritmos
+que interpreta al personaje {request.character.value}.
+
+PERFIL DEL PERSONAJE:
+{character_profile}
+
+OBJETIVO:
+Explicar algoritmos de forma breve, clara y entretenida.
+
+REGLAS DE PERSONALIDAD:
+- Interpreta al personaje durante toda la explicación.
+- Mantén su personalidad, tono y forma de expresarse.
+- No hables como un profesor genérico que solamente
+  agrega frases características.
+- Incluye obligatoriamente una analogía concreta
+  relacionada con el universo del personaje.
+- La analogía debe explicar cómo funciona el algoritmo,
+  no ser únicamente una decoración.
+- Integra la analogía principalmente en "¿Cómo funciona?".
+- Usa una o dos expresiones de "catchphrases" cuando
+  encajen naturalmente.
+- Puedes mencionar elementos, lugares, habilidades
+  o situaciones reconocibles del universo del personaje.
+- No fuerces saludos ni despedidas.
+- Mantén la precisión técnica por encima del roleplay.
+
+REGLAS DE PRECISIÓN TÉCNICA:
+- Utiliza exclusivamente los datos técnicos proporcionados.
+- No inventes pasos, resultados, complejidades ni ejemplos.
+- Conserva los términos técnicos correctos.
+- No confundas mejor caso, promedio y peor caso.
+- Si una complejidad depende de la implementación,
+  menciona esa condición cuando sea importante.
+- La precisión técnica siempre tiene prioridad
+  sobre la interpretación del personaje.
+
+
+FORMATO DE RESPUESTA:
+- Responde siempre en español.
+- Escribe entre 130 palabras aproximadamente como maximo.
+- Usa exactamente estos tres apartados:
+
+**¿Qué hace?**
+**¿Cómo funciona?**
+**Complejidad y uso**
+
+- En "¿Qué hace?", explica brevemente el objetivo.
+- En "¿Cómo funciona?", explica el algoritmo mediante
+  una analogía del universo del personaje.
+- En "Complejidad y uso", conserva los datos técnicos
+  exactos y menciona una aplicación práctica.
+- No agregues introducciones largas.
+- No escribas código.
+- Evita repetir información.
+- Termina con una oración completa.
+
+"""
+
+        user_prompt = f"""
+Explica el algoritmo: {request.algorithm}
+
+DATOS TÉCNICOS VERIFICADOS:
+{json.dumps(facts, ensure_ascii=False, indent=2)}
+
+Transforma estos datos en una explicación educativa
+siguiendo la personalidad del personaje.
+
+Recuerda: la exactitud técnica es obligatoria
+y la respuesta debe ser breve.
+"""
+
+        response = chat(
+            model=OLLAMA_MODEL,
+            messages=[
+                {
+                    "role": "system",
+                    "content": system_prompt
+                },
+                {
+                    "role": "user",
+                    "content": user_prompt
+                }
+            ],
+            options={
+                "temperature": 0.4,
+                "num_predict": 350
+            }
+        )
+
+        explanation = response.message.content
+
+        if not explanation or not explanation.strip():
+            raise ValueError("Ollama devolvió una respuesta vacía.")
+
+        return {
+            "algorithm": request.algorithm,
+            "character": request.character,
+            "explanation": explanation.strip()
+        }
+
+    except ConnectionError as error:
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                "No se pudo conectar con Ollama. "
+                "Verifica que esté iniciado."
+            )
+        ) from error
+
+    except ResponseError as error:
+        detail = (
+            f"El modelo {OLLAMA_MODEL} no está disponible. "
+            f"Instálalo con ollama pull {OLLAMA_MODEL}."
+            if error.status_code == 404
+            else "Ollama no pudo generar la explicación."
+        )
+
+        raise HTTPException(
+            status_code=502,
+            detail=detail
+        ) from error
+
+    except Exception as error:
+        print(f"Error en Ollama: {error}")
+
+        raise HTTPException(
+            status_code=500,
+            detail="Error al generar la explicación con Ollama."
+        ) from error
+
+
+# ============================================================
+# ENDPOINT: HOME
+# ============================================================
+
 @app.get("/")
 def home():
     return {
         "message": "API de Python funcionando correctamente"
-    } 
-   
+    }
+
+
+# ============================================================
+# ENDPOINT: CHAT LIBRE CON OLLAMA
+# ============================================================
+
 @app.post("/ask")
 def ask_llama(request: PromptRequest):
     try:
         response = chat(
-            model="llama3.2:3b",
+            model=OLLAMA_MODEL,
             messages=[
                 {
-                    "role": "system", 
+                    "role": "system",
                     "content": (
-                        "Eres un asistente experto en algoritmos y ciencias de la computación. "
-                        "Responde siempre en español, conserva la precisión técnica y sigue el estilo y formato indicados en la solicitud del usuario."
+                        "Eres un asistente de programación "
+                        "que habla como Goku. "
+                        "Eres energético, optimista y amigable. "
+                        "Puedes utilizar ocasionalmente "
+                        "la expresión '¡Kamehameha!'. "
+                        "La exactitud técnica siempre es "
+                        "más importante que el personaje. "
+                        "Responde siempre en español."
                     )
-                },  
+                },
                 {
-                    "role": "user", 
+                    "role": "user",
                     "content": request.prompt
                 }
-            ]
+            ],
+            options={
+                "temperature": 0.3,
+                "num_predict": 350
+            }
         )
+
         return {
             "answer": response.message.content
         }
+
     except Exception as error:
-        print(f"Error de ollama: {error}")
-        
+        print(f"Error de Ollama: {error}")
+
         raise HTTPException(
-            status_code=500, detail="Error al procesar la solicitud con Ollama.")
-
-
+            status_code=500,
+            detail="Error al procesar la solicitud con Ollama."
+        ) from error
