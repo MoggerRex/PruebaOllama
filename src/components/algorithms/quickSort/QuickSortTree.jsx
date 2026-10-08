@@ -1,5 +1,6 @@
 import { useLayoutEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
+import SpeechControls from './SpeechControls.jsx';  
 
 export default function QuickSortTree({ currentStep, algorithmOverview }) {
   const visualizerColumnRef = useRef(null);
@@ -145,9 +146,12 @@ export default function QuickSortTree({ currentStep, algorithmOverview }) {
         </div>
 
         {algorithmOverview ? (
-          <p style={{ margin: 0, lineHeight: '1.6', fontSize: '13px', whiteSpace: 'pre-wrap' }}>
-            {algorithmOverview}
-          </p>
+          <>
+            <p style={{ margin: 0, lineHeight: '1.6', fontSize: '13px', whiteSpace: 'pre-wrap' }}>
+              {algorithmOverview}
+            </p>
+            <SpeechControls text={algorithmOverview} />
+          </>
         ) : (
           <p style={{ margin: 0, color: '#94a3b8', lineHeight: '1.6', fontSize: '13px' }}>
             La explicación general de Quick Sort aparecerá aquí.

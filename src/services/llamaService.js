@@ -27,3 +27,18 @@ export const LLAMA_PERSONALITIES = Object.keys(characterPrompts).map((name) => (
 export async function fetchAlgorithmOverview(algorithmName, selectedCharacter = 'Naruto', apiUrl = API_URL) {
   return fetchAlgorithmExplanation(algorithmName, selectedCharacter, apiUrl);
 }
+
+/** Pide al backend el audio del texto con el perfil de voz indicado. */
+export async function fetchSpeech(text, profile = 'normal', apiUrl = API_URL) {
+  const response = await fetch(`${apiUrl}/speak`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text, profile }),
+  });
+
+  if (!response.ok) {
+    throw new Error('No se pudo generar el audio.');
+  }
+
+  return response.blob();
+}

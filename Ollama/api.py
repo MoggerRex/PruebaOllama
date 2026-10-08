@@ -3,11 +3,13 @@ from enum import Enum
 from pathlib import Path
 from typing import Literal
 import json
+import re
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Response
 from fastapi.middleware.cors import CORSMiddleware
 from ollama import chat, ResponseError
 from pydantic import BaseModel, ConfigDict
+import edge_tts
 
 
 # ============================================================
@@ -41,6 +43,12 @@ AlgorithmType = Literal[
     "Bubble Sort"
 ]
 
+VOICE_PROFILES = {
+    # Voz normal, tranquila
+    "normal": {"voice": "es-MX-DaliaNeural", "rate": "+0%", "pitch": "+0Hz"},
+    # Voz enérgica: masculina, más rápida y aguda
+    "energico": {"voice": "es-MX-JorgeNeural", "rate": "+18%", "pitch": "+12Hz"},
+}
 
 # ============================================================
 # DATOS TÉCNICOS DE LOS ALGORITMOS
@@ -216,6 +224,10 @@ class AlgorithmOverviewResponse(BaseModel):
 
 class PromptRequest(BaseModel):
     prompt: str
+    
+class SpeakRequest(BaseModel):
+    text: str
+    profile: str = "normal"
 
 
 # ============================================================
@@ -233,6 +245,13 @@ def get_character_profile(character: CharacterType) -> str:
         )
 
     return str(char_info)
+
+def clean_text_for_speech(text: str) -> str:
+    """Quita Markdown para que la voz no lea símbolos."""
+    text = re.sub(r"[*_#`>]+", "", text)
+    text = re.sub(r"\s*\n\s*", ". ", text)
+    text = re.sub(r"\.{2,}", ".", text)
+    return text.strip()
 
 
 # ============================================================
@@ -406,6 +425,7 @@ def ask_llama(request: PromptRequest):
             messages=[
                 {
                     "role": "system",
+                    "role": "system",
                     "content": (
                         "Eres un asistente de programación "
                         "que habla como Goku. "
@@ -438,4 +458,37 @@ def ask_llama(request: PromptRequest):
         raise HTTPException(
             status_code=500,
             detail="Error al procesar la solicitud con Ollama."
+        ) from error
+
+# ============================================================
+# ENDPOINT: TEXTO A VOZ
+# ============================================================
+
+@app.post("/speak")
+async def speak(request: SpeakRequest):
+    text = clean_text_for_speech(request.text)
+    if not text:
+        raise HTTPException(status_code=400, detail="El texto está vacío.")
+
+    profile = VOICE_PROFILES.get(request.profile, VOICE_PROFILES["normal"])
+
+    try:
+        communicate = edge_tts.Communicate(
+            text[:2000],
+            profile["voice"],
+            rate=profile["rate"],
+            pitch=profile["pitch"],
+        )
+        audio = bytearray()
+        async for chunk in communicate.stream():
+            if chunk["type"] == "audio":
+                audio.extend(chunk["data"])
+
+        return Response(content=bytes(audio), media_type="audio/mpeg")
+
+    except Exception as error:
+        print(f"Error de TTS: {error}")
+        raise HTTPException(
+            status_code=500,
+            detail="No se pudo generar el audio."
         ) from error
