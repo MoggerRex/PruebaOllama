@@ -4,10 +4,7 @@ import QuickSortVisualizer from './components/algorithms/quickSort/QuickSortVisu
 import HashSearchVisualizer from './components/algorithms/hashSearch/HashSearchVisualizer.jsx';
 
 function App() {
-  const [activeTab, setActiveTab] = useState('quicksort'); // 'chat' o 'quicksort'
-  const [prompt, setPrompt] = useState('');
-  const [response, setResponse] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState('quicksort');
   const [apiStatus, setApiStatus] = useState('Comprobando API...');
 
   const API_URL = 'http://127.0.0.1:8000';
@@ -20,37 +17,6 @@ function App() {
       .catch(() => setApiStatus('Error al conectar con la API'));
   }, []);
 
-  // Enviar pregunta al endpoint POST "/ask"
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!prompt.trim()) return;
-
-    setLoading(true);
-    setResponse('');
-
-    try {
-      const res = await fetch(`${API_URL}/ask`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ prompt }),
-      });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        setResponse(data.answer);
-      } else {
-        setResponse(`Error: ${data.detail || 'Ocurrió un error inesperado.'}`);
-      }
-    } catch {
-      setResponse('Error de red o el servidor FastAPI no está corriendo.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <div className="container">
       <header className="header">
@@ -61,7 +27,7 @@ function App() {
       </header>
 
       {/* Navegación por pestañas */}
-      <nav aria-label="Algoritmos y chat" style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '10px', margin: '15px 0' }}>
+      <nav aria-label="Visualizadores de algoritmos" style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '10px', margin: '15px 0' }}>
         <button type="button" aria-pressed={activeTab === 'hash'} onClick={() => setActiveTab('hash')}
           style={{ backgroundColor: activeTab === 'hash' ? '#2563eb' : '#e5e7eb', color: activeTab === 'hash' ? 'white' : '#374151' }}>
           Búsqueda hash
@@ -83,38 +49,13 @@ function App() {
 
       </nav>
 
-      {/* Contenido según la pestaña seleccionada */}
       {activeTab === 'quicksort' ? (
         <main className="algorithm-layout">
           <QuickSortVisualizer />
         </main>
-
-      ) : activeTab === 'hash' ? (
+      ) : (
         <main>
           <HashSearchVisualizer />
-        </main>
-
-      ) : (
-        <main className="chat-box">
-          <form onSubmit={handleSubmit} className="form-container">
-            <textarea
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              placeholder="Escribe tu duda de programación aquí..."
-              rows={4}
-              disabled={loading}
-            />
-            <button type="submit" disabled={loading || !prompt.trim()}>
-              {loading ? 'Consultando...' : 'Enviar Pregunta'}
-            </button>
-          </form>
-
-          {response && (
-            <div className="response-box">
-              <h3>Respuesta del Asistente:</h3>
-              <p className="response-text">{response}</p>
-            </div>
-          )}
         </main>
       )}
     </div>

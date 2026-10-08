@@ -55,28 +55,6 @@ body {
   color: #f87171;
 }
 
-.form-container {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-textarea {
-  width: 100%;
-  padding: 12px;
-  border-radius: 8px;
-  border: 1px solid #475569;
-  background-color: #0f172a;
-  color: #f8fafc;
-  font-size: 1rem;
-  resize: vertical;
-  outline: none;
-}
-
-textarea:focus {
-  border-color: #38bdf8;
-}
-
 button {
   padding: 12px;
   border-radius: 8px;
@@ -96,25 +74,6 @@ button:hover:not(:disabled) {
 button:disabled {
   background-color: #475569;
   cursor: not-allowed;
-}
-
-.response-box {
-  margin-top: 24px;
-  background-color: #0f172a;
-  padding: 16px;
-  border-radius: 8px;
-  border-left: 4px solid #38bdf8;
-}
-
-.response-box h3 {
-  font-size: 1rem;
-  color: #94a3b8;
-  margin-bottom: 8px;
-}
-
-.response-text {
-  line-height: 1.6;
-  white-space: pre-wrap;
 }
 
 .hash-search { display: grid; gap: 18px; text-align: left; }

@@ -222,9 +222,6 @@ class AlgorithmOverviewResponse(BaseModel):
     explanation: str
 
 
-class PromptRequest(BaseModel):
-    prompt: str
-    
 class SpeakRequest(BaseModel):
     text: str
     profile: str = "normal"
@@ -412,53 +409,6 @@ def home():
         "message": "API de Python funcionando correctamente"
     }
 
-
-# ============================================================
-# ENDPOINT: CHAT LIBRE CON OLLAMA
-# ============================================================
-
-@app.post("/ask")
-def ask_llama(request: PromptRequest):
-    try:
-        response = chat(
-            model=OLLAMA_MODEL,
-            messages=[
-                {
-                    "role": "system",
-                    "role": "system",
-                    "content": (
-                        "Eres un asistente de programación "
-                        "que habla como Goku. "
-                        "Eres energético, optimista y amigable. "
-                        "Puedes utilizar ocasionalmente "
-                        "la expresión '¡Kamehameha!'. "
-                        "La exactitud técnica siempre es "
-                        "más importante que el personaje. "
-                        "Responde siempre en español."
-                    )
-                },
-                {
-                    "role": "user",
-                    "content": request.prompt
-                }
-            ],
-            options={
-                "temperature": 0.3,
-                "num_predict": 350
-            }
-        )
-
-        return {
-            "answer": response.message.content
-        }
-
-    except Exception as error:
-        print(f"Error de Ollama: {error}")
-
-        raise HTTPException(
-            status_code=500,
-            detail="Error al procesar la solicitud con Ollama."
-        ) from error
 
 # ============================================================
 # ENDPOINT: TEXTO A VOZ
