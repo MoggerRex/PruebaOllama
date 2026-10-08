@@ -2,7 +2,6 @@ import './App.css';
 import { useState, useEffect } from 'react';
 import QuickSortVisualizer from './components/algorithms/quickSort/QuickSortVisualizer.jsx';
 import HashSearchVisualizer from './components/algorithms/hashSearch/HashSearchVisualizer.jsx';
-import AlgorithmOverview from './components/common/AlgorithmOverview.jsx';
 
 function App() {
   const [activeTab, setActiveTab] = useState('quicksort'); // 'chat' o 'quicksort'
@@ -81,33 +80,20 @@ function App() {
         >
           Visualizador Quicksort
         </button>
-        <button
-          onClick={() => setActiveTab('chat')}
-          style={{
-            padding: '8px 16px',
-            backgroundColor: activeTab === 'chat' ? '#2563eb' : '#e5e7eb',
-            color: activeTab === 'chat' ? 'white' : '#374151',
-            border: 'none',
-            borderRadius: '6px',
-            cursor: 'pointer',
-            fontWeight: 'bold'
-          }}
-        >
-          Chat Libre
-        </button>
+
       </nav>
 
       {/* Contenido según la pestaña seleccionada */}
       {activeTab === 'quicksort' ? (
         <main className="algorithm-layout">
           <QuickSortVisualizer />
-          <AlgorithmOverview key="quicksort" algorithm="Quick Sort" />
         </main>
+
       ) : activeTab === 'hash' ? (
-        <main className="algorithm-layout">
+        <main>
           <HashSearchVisualizer />
-          <AlgorithmOverview key="hash" algorithm="Hash Search" />
         </main>
+
       ) : (
         <main className="chat-box">
           <form onSubmit={handleSubmit} className="form-container">
