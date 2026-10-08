@@ -1,5 +1,5 @@
 import { useLayoutEffect, useRef, useState } from 'react';
-import { motion } from 'framer-motion'; // <-- Importación de Framer Motion
+import { motion } from 'framer-motion'; 
 
 export default function QuickSortTree({ currentStep, algorithmOverview }) {
   const visualizerColumnRef = useRef(null);

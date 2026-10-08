@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { LLAMA_PERSONALITIES } from '../services/llamaService.js';
 
 export default function ExplanationPanel({ activeAlgorithm }) {
@@ -31,10 +32,9 @@ export default function ExplanationPanel({ activeAlgorithm }) {
       <div className="p-4 flex-1 overflow-y-auto">
         {tab === 'teoria' ? (
            // Aquí muestras lo que te devuelve fetchAlgorithmOverview
-           <p className="leading-relaxed text-sm">Aquí va la explicación de Llama generada con {character}...</p>
+            <p className="leading-relaxed text-sm">Aquí va la explicación de {activeAlgorithm} generada con {character}...</p>
         ) : (
-           // Aquí insertas tu formulario de Chat Libre que ya tenías en App.jsx
-           <FreeChatComponent /> 
+            <p className="leading-relaxed text-sm">El chat libre con {character} está disponible desde el panel del dashboard.</p>
         )}
       </div>
     </div>

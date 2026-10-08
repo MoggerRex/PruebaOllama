@@ -153,6 +153,6 @@ El formato JSON debe seguir esta estructura exacta:
     return JSON.parse(cleanedAnswer);
   } catch (error) {
     console.error('Error parseando la respuesta JSON de Llama:', error, rawAnswer);
-    throw new Error('La respuesta recibida de Llama no tenía un formato JSON válido.');
+    throw new Error('La respuesta recibida de Llama no tenía un formato JSON válido.', { cause: error });
   }
 }
