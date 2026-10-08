@@ -1,154 +1,59 @@
-import { useState } from 'react';
+import { useEffect } from 'react';
 import QuickSortTree from './QuickSortTree.jsx';
 import useQuickSortLogic from './useQuickSortLogic.js';
-import { LLAMA_PERSONALITIES } from '../../../services/llamaService.js';
 
-export default function QuickSortVisualizer() {
+export default function QuickSortVisualizer({
+  inputNumbers,
+  selectedCharacter,
+  isPlaying,
+  setStepExplanation
+}) {
+  // Extraemos las funciones y estados de la lógica
   const {
     steps,
     currentStep,
     currentStepIndex,
-    loading,
-    error,
     algorithmOverview,
     loadQuickSortSteps,
-    nextStep,
-    prevStep
+    nextStep
   } = useQuickSortLogic();
 
-  // Estado para gestionar los 7 valores ingresados por el usuario
-  const [inputNumbers, setInputNumbers] = useState([8, 3, 1, 7, 0, 10, 2]);
-  const [selectedCharacter, setSelectedCharacter] = useState('Naruto');
+  // 1. Efecto: Cargar la simulación cuando cambien los números de entrada o el personaje
+  useEffect(() => {
+    loadQuickSortSteps(inputNumbers, selectedCharacter);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [inputNumbers, selectedCharacter]);
 
-  const handleInputChange = (index, value) => {
-    const updated = [...inputNumbers];
-    updated[index] = value === '' ? '' : Number(value);
-    setInputNumbers(updated);
-  };
+  // 2. Efecto: Enviar la explicación actual al panel inferior del Dashboard
+  useEffect(() => {
+    if (currentStep) {
+      setStepExplanation(currentStep.explanation);
+    } else {
+      setStepExplanation('Preparando arreglo y cargando explicación de Llama...');
+    }
+  }, [currentStep, setStepExplanation]);
 
-  const handleStartSimulation = (e) => {
-    e.preventDefault();
-    // Reemplaza valores vacíos o no numéricos por 0
-    const cleanNumbers = inputNumbers.map((num) => (isNaN(num) || num === '' ? 0 : Number(num)));
-    loadQuickSortSteps(cleanNumbers, selectedCharacter);
-  };
+  // 3. Efecto: Reproducción automática (Play/Pausa) controlada desde el Dashboard
+  useEffect(() => {
+    let interval;
+    // Si isPlaying es true y aún no llegamos al final de los pasos
+    if (isPlaying && currentStepIndex < steps.length - 1) {
+      interval = setInterval(() => {
+        nextStep();
+      }, 1200); // Cambia de paso cada 1.2 segundos (ajusta a tu gusto)
+    }
 
-  const handleRandomize = () => {
-    const randomArray = Array.from({ length: 7 }, () => Math.floor(Math.random() * 20));
-    setInputNumbers(randomArray);
-    loadQuickSortSteps(randomArray, selectedCharacter);
-  };
+    // Limpiamos el intervalo al desmontar o pausar
+    return () => clearInterval(interval);
+  }, [isPlaying, currentStepIndex, steps.length, nextStep]);
 
   return (
-    <section style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
-      <h2>Visualizador de Quicksort Interactivo</h2>
-
-      {/* Formulario de Entrada de Datos */}
-      <form onSubmit={handleStartSimulation} style={{ marginBottom: '25px', textAlign: 'center' }}>
-        <p style={{ fontWeight: '500', marginBottom: '10px' }}>Ingresa los 7 números a ordenar:</p>
-        
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '15px' }}>
-          {inputNumbers.map((num, idx) => (
-            <div key={idx} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <label style={{ fontSize: '12px', color: '#6b7280', marginBottom: '2px' }}>n{idx + 1}</label>
-              <input
-                type="number"
-                value={num}
-                onChange={(e) => handleInputChange(idx, e.target.value)}
-                style={{
-                  width: '50px',
-                  padding: '8px',
-                  textAlign: 'center',
-                  fontSize: '14px',
-                  borderRadius: '6px',
-                  border: '1px solid #ccc'
-                }}
-              />
-            </div>
-          ))}
-        </div>
-
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
-          <button
-            type="submit"
-            disabled={loading}
-            style={{
-              padding: '10px 20px',
-              backgroundColor: loading ? '#9ca3af' : '#2563eb',
-              color: 'white',
-              border: 'none',
-              borderRadius: '6px',
-              fontWeight: 'bold',
-              cursor: loading ? 'not-allowed' : 'pointer'
-            }}
-          >
-            {loading ? 'Procesando...' : 'Iniciar Quicksort'}
-          </button>
-
-          <button
-            type="button"
-            onClick={handleRandomize}
-            disabled={loading}
-            style={{
-              padding: '10px 16px',
-              backgroundColor: '#4b5563',
-              color: 'white',
-              border: 'none',
-              borderRadius: '6px',
-              cursor: loading ? 'not-allowed' : 'pointer'
-            }}
-          >
-            Aleatorios
-          </button>
-        </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', marginTop: '14px' }}>
-          <label htmlFor="llama-personality" style={{ fontSize: '14px', fontWeight: '500' }}>
-            Estilo de la aportación de Llama
-          </label>
-          <select
-            id="llama-personality"
-            value={selectedCharacter}
-            onChange={(event) => setSelectedCharacter(event.target.value)}
-            disabled={loading}
-            style={{ padding: '8px 10px', borderRadius: '6px', border: '1px solid #64748b', minWidth: '190px' }}
-          >
-            {LLAMA_PERSONALITIES.map(({ name }) => (
-              <option key={name} value={name}>{name}</option>
-            ))}
-          </select>
-        </div>
-      </form>
-
-      {error && <div style={{ color: 'red', textAlign: 'center', marginBottom: '15px' }}>{error}</div>}
-
-      {/* Visualización en Barras */}
-      <QuickSortTree currentStep={currentStep} algorithmOverview={algorithmOverview} />
-
-      {/* Controles de Reproducción Paso a Paso */}
-      {steps.length > 0 && (
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '15px', marginTop: '20px' }}>
-          <button
-            onClick={prevStep}
-            disabled={currentStepIndex === 0}
-            style={{ padding: '8px 16px', cursor: currentStepIndex === 0 ? 'not-allowed' : 'pointer' }}
-          >
-            ◀ Anterior
-          </button>
-          
-          <span style={{ alignSelf: 'center', fontWeight: 'bold' }}>
-            Paso {currentStepIndex + 1} de {steps.length}
-          </span>
-
-          <button
-            onClick={nextStep}
-            disabled={currentStepIndex === steps.length - 1}
-            style={{ padding: '8px 16px', cursor: currentStepIndex === steps.length - 1 ? 'not-allowed' : 'pointer' }}
-          >
-            Siguiente ▶
-          </button>
-        </div>
-      )}
-    </section>
+    <div className="w-full h-full flex flex-col justify-center p-4">
+      {/* Pasamos los datos al componente encargado de pintar las barras */}
+      <QuickSortTree
+        currentStep={currentStep}
+        algorithmOverview={algorithmOverview}
+      />
+    </div>
   );
 }

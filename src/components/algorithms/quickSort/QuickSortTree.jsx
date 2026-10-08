@@ -1,4 +1,5 @@
 import { useLayoutEffect, useRef, useState } from 'react';
+import { motion } from 'framer-motion'; // <-- Importación de Framer Motion
 
 export default function QuickSortTree({ currentStep, algorithmOverview }) {
   const visualizerColumnRef = useRef(null);
@@ -18,7 +19,7 @@ export default function QuickSortTree({ currentStep, algorithmOverview }) {
 
   if (!currentStep) {
     return (
-      <div style={{ textAlign: 'center', padding: '2rem', color: '#9ca3af' }}>
+      <div className="text-center p-8 text-gray-400">
         Ingresa tus 7 números arriba y haz clic en "Iniciar Quicksort".
       </div>
     );
@@ -29,107 +30,75 @@ export default function QuickSortTree({ currentStep, algorithmOverview }) {
   // Determinar valor máximo para escalar la altura de las barras
   const maxVal = Math.max(...array, 1);
 
-  const getBarColor = (index) => {
-    if (index === pivotIndex) return '#ec4899';             // Rosa: Pivote
-    if (swappedIndices.includes(index)) return '#ef4444';   // Rojo: Intercambiado
-    if (comparingIndices.includes(index)) return '#f59e0b'; // Amarillo: Comparando
-    return '#3b82f6';                                       // Azul: Normal
+  // Reemplazamos los códigos hexadecimales por clases de fondo de Tailwind
+  const getBarColorClass = (index) => {
+    if (index === pivotIndex) return 'bg-pink-500';             // Rosa: Pivote
+    if (swappedIndices.includes(index)) return 'bg-red-500';    // Rojo: Intercambiado
+    if (comparingIndices.includes(index)) return 'bg-amber-500';// Amarillo: Comparando
+    return 'bg-blue-500';                                       // Azul: Normal
   };
 
   return (
-    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1.25rem', width: '100%' }}>
-      <div ref={visualizerColumnRef} style={{ flex: '1.6', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.5rem' }}>
+    <div className="flex items-start gap-5 w-full">
+      
+      {/* SECCIÓN IZQUIERDA: Gráfica y Explicación del Paso */}
+      <div ref={visualizerColumnRef} className="flex-[1.6] flex flex-col items-center gap-6">
+        
         {/* Contenedor Gráfico de Barras */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'flex-end',
-          justifyContent: 'center',
-          gap: '12px',
-          height: '200px',
-          width: '100%',
-          borderBottom: '2px solid #4b5563',
-          paddingBottom: '8px'
-        }}>
+        <div className="flex items-end justify-center gap-3 h-52 w-full border-b-2 border-slate-600 pb-2">
           {array.map((value, idx) => {
             const barHeight = Math.max((value / maxVal) * 160, 24);
             return (
-              <div
-                key={idx}
-                style={{
-                  height: `${barHeight}px`,
-                  width: '45px',
-                  backgroundColor: getBarColor(idx),
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'flex-end',
-                  alignItems: 'center',
-                  color: 'white',
-                  fontWeight: 'bold',
-                  borderRadius: '4px 4px 0 0',
-                  transition: 'all 0.3s ease',
-                  paddingBottom: '4px'
-                }}
+              // Reemplazamos <div> por <motion.div> con la propiedad "layout"
+              <motion.div
+                layout
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                key={value} // El key debe ser el valor para que Framer Motion detecte el movimiento horizontal
+                style={{ height: `${barHeight}px` }}
+                className={`w-11 flex flex-col justify-end items-center text-white font-bold rounded-t-md pb-1 ${getBarColorClass(idx)}`}
               >
-                <span style={{ fontSize: '12px' }}>{value}</span>
-              </div>
+                <span className="text-xs">{value}</span>
+              </motion.div>
             );
           })}
         </div>
 
         {/* Leyenda de colores */}
-        <div style={{ display: 'flex', gap: '15px', fontSize: '12px', color: '#e5e7eb', flexWrap: 'wrap', justifyContent: 'center' }}>
-          <span><strong style={{ color: '#ec4899' }}>■</strong> Pivote</span>
-          <span><strong style={{ color: '#f59e0b' }}>■</strong> Comparando</span>
-          <span><strong style={{ color: '#ef4444' }}>■</strong> Intercambiado</span>
-          <span><strong style={{ color: '#3b82f6' }}>■</strong> Normal</span>
+        <div className="flex gap-4 text-xs text-gray-200 flex-wrap justify-center">
+          <span><strong className="text-pink-500">■</strong> Pivote</span>
+          <span><strong className="text-amber-500">■</strong> Comparando</span>
+          <span><strong className="text-red-500">■</strong> Intercambiado</span>
+          <span><strong className="text-blue-500">■</strong> Normal</span>
         </div>
 
         {/* Contenedor del Paso del Algoritmo */}
-        <div style={{
-          backgroundColor: '#ffffff',
-          padding: '1rem',
-          borderRadius: '8px',
-          textAlign: 'center',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-          width: '100%',
-          maxWidth: '550px'
-        }}>
-          <h4 style={{ margin: '0 0 6px 0', color: '#1f2937', fontSize: '16px' }}>
+        <div className="bg-slate-800 p-4 rounded-lg text-center shadow-md w-full max-w-lg">
+          <h4 className="m-0 mb-1 text-slate-100 text-base font-semibold">
             Paso {currentStep.stepIndex}
           </h4>
-          <p style={{ margin: 0, color: '#4b5563', fontSize: '14px', lineHeight: '1.4' }}>
+          <p className="m-0 text-slate-300 text-sm leading-relaxed">
             {explanation}
           </p>
         </div>
       </div>
 
-      {/* Panel de aportación de la IA a la derecha */}
-      <div style={{
-        flex: '0.95',
-        minWidth: '260px',
-        minHeight: 0,
-        maxWidth: '360px',
-        height: visualizerHeight === null ? undefined : `${visualizerHeight}px`,
-        boxSizing: 'border-box',
-        overflowY: 'auto',
-        backgroundColor: '#0f172a',
-        border: '1px solid #3b82f6',
-        borderRadius: '12px',
-        padding: '1rem',
-        color: '#e2e8f0',
-        boxShadow: '0 6px 20px rgba(0,0,0,0.18)'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-          <span style={{ fontSize: '18px' }}>🤖</span>
-          <strong style={{ color: '#60a5fa', fontSize: '14px' }}>Aportación del chat</strong>
+      {/* SECCIÓN DERECHA: Panel de aportación de la IA */}
+      {/* Nota: En el paso 2 moveremos este panel hacia afuera (App.jsx), pero por ahora lo adaptamos a Tailwind */}
+      <div 
+        className="flex-[0.95] min-w-[260px] max-w-[360px] overflow-y-auto bg-slate-900 border border-blue-500 rounded-xl p-4 text-slate-200 shadow-xl"
+        style={{ height: visualizerHeight === null ? undefined : `${visualizerHeight}px` }}
+      >
+        <div className="flex items-center gap-2 mb-3">
+          <span className="text-lg">🤖</span>
+          <strong className="text-blue-400 text-sm">Aportación del chat</strong>
         </div>
 
         {algorithmOverview ? (
-          <p style={{ margin: 0, lineHeight: '1.6', fontSize: '13px', whiteSpace: 'pre-wrap' }}>
+          <p className="m-0 leading-relaxed text-sm whitespace-pre-wrap">
             {algorithmOverview}
           </p>
         ) : (
-          <p style={{ margin: 0, color: '#94a3b8', lineHeight: '1.6', fontSize: '13px' }}>
+          <p className="m-0 text-slate-400 leading-relaxed text-sm">
             La explicación general de Quick Sort aparecerá aquí.
           </p>
         )}
