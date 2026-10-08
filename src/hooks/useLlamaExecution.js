@@ -1,17 +1,18 @@
 import { useState } from 'react';
-import { askLlama } from '../services/llamaService.js';
+import { fetchAlgorithmExplanation } from '../services/llamaService.js';
 
 export default function useLlamaExecution() {
   const [explanation, setExplanation] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const generateExplanation = async (prompt) => {
+  const generateExplanation = async (algorithm, character) => {
     setLoading(true);
     setError('');
+    setExplanation('');
 
     try {
-      const answer = await askLlama(prompt);
+      const answer = await fetchAlgorithmExplanation(algorithm, character);
       setExplanation(answer);
       return answer;
     } catch (requestError) {
@@ -23,5 +24,10 @@ export default function useLlamaExecution() {
     }
   };
 
-  return { explanation, loading, error, generateExplanation };
+  const clearExplanation = () => {
+    setExplanation('');
+    setError('');
+  };
+
+  return { explanation, loading, error, generateExplanation, clearExplanation };
 }
