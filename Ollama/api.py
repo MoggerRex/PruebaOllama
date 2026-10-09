@@ -3,6 +3,9 @@ from enum import Enum
 from pathlib import Path
 from typing import Literal
 import json
+import logging
+import tempfile
+from threading import Lock
 import re
 
 from fastapi import FastAPI, HTTPException, Response
@@ -17,6 +20,14 @@ import edge_tts
 # ============================================================
 
 OLLAMA_MODEL = "llama3.2:3b"
+MODELS_DIR = Path(__file__).resolve().parent.parent / "models"
+GOKU_MODEL_PATH = MODELS_DIR / "Goku.pth"
+GOKU_INDEX_PATH = MODELS_DIR / "Goku.index"
+GOKU_F0_UP_KEY = 0
+NEUTRAL_VOICE = "es-MX-JorgeNeural"
+logger = logging.getLogger(__name__)
+_rvc_lock = Lock()
+_goku_rvc = None
 
 CHARACTERS_PATH = (
     Path(__file__).resolve().parent.parent
@@ -227,9 +238,101 @@ class SpeakRequest(BaseModel):
     profile: str = "normal"
 
 
+class SpeakRequest(BaseModel):
+    text: str
+    character: str = ""
+
+
 # ============================================================
 # FUNCIONES AUXILIARES
 # ============================================================
+
+def convert_goku_audio(input_path: Path, output_path: Path) -> bytes:
+    global _goku_rvc
+
+    # Serialize inference because the cached RVC instance has mutable state.
+    with _rvc_lock:
+        if _goku_rvc is None:
+            import torch
+            from rvc_python.infer import RVCInference
+
+            converter = RVCInference(
+                models_dir=str(MODELS_DIR),
+                device="cuda:0" if torch.cuda.is_available() else "cpu",
+            )
+            converter.load_model(
+                str(GOKU_MODEL_PATH), index_path=str(GOKU_INDEX_PATH)
+            )
+            converter.set_params(
+                f0up_key=GOKU_F0_UP_KEY,
+                f0method="rmvpe",
+                index_rate=0.75,
+                protect=0.33,
+            )
+            _goku_rvc = converter
+
+        _goku_rvc.infer_file(str(input_path), str(output_path))
+        audio = output_path.read_bytes()
+        if not audio:
+            raise ValueError("RVC returned empty audio.")
+        return audio
+
+
+async def generate_speech(text: str, character: str) -> tuple[bytes, str]:
+    import edge_tts
+
+    temporary_paths = []
+    try:
+        # Close handles before external libraries open the files on Windows.
+        with tempfile.NamedTemporaryFile(suffix=".mp3", delete=False) as base:
+            base_path = Path(base.name)
+            temporary_paths.append(base_path)
+
+        await edge_tts.Communicate(text, NEUTRAL_VOICE).save(str(base_path))
+        neutral_audio = base_path.read_bytes()
+        if not neutral_audio:
+            raise ValueError("edge-tts returned empty audio.")
+
+        if (
+            character == "Goku"
+            and GOKU_MODEL_PATH.is_file()
+            and GOKU_INDEX_PATH.is_file()
+        ):
+            try:
+                with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as converted:
+                    converted_path = Path(converted.name)
+                    temporary_paths.append(converted_path)
+                audio = await run_in_threadpool(
+                    convert_goku_audio, base_path, converted_path
+                )
+                return audio, "audio/wav"
+            except Exception:
+                logger.exception("Goku conversion failed; returning neutral audio.")
+
+        return neutral_audio, "audio/mpeg"
+    finally:
+        for path in temporary_paths:
+            try:
+                path.unlink(missing_ok=True)
+            except OSError:
+                logger.exception("Could not remove temporary audio: %s", path)
+
+
+@app.post("/speak")
+async def speak(request: SpeakRequest):
+    text = request.text.strip()
+    if not text:
+        raise HTTPException(status_code=422, detail="El texto no puede estar vacio.")
+    try:
+        audio, media_type = await generate_speech(text, request.character)
+    except Exception as error:
+        logger.exception("Speech generation failed.")
+        raise HTTPException(
+            status_code=502, detail="No se pudo generar el audio con edge-tts."
+        ) from error
+    # Audio is already in memory when temporary files are removed.
+    return Response(content=audio, media_type=media_type)
+
 
 def get_character_profile(character: CharacterType) -> str:
     char_info = CHARACTER_PROMPTS[character.value]
