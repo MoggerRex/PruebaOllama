@@ -12,18 +12,23 @@ const ALGORITHMS = [
   { id: 'binarysearch', name: 'Binary search', kind: 'Búsqueda', complexity: 'O(log n)', worst: 'O(log n)', application: 'Colecciones ordenadas y catálogos.', benefit: 'Reduce a la mitad los datos candidatos en cada comparación.', summary: 'Compara el centro y descarta la mitad que no puede contener el objetivo.' },
 ];
 
-const CHARACTERS = [
-  { name: 'Goku', avatar: '⚡', tone: 'bg-orange-100 text-orange-700' },
-  { name: 'Naruto', avatar: '🍥', tone: 'bg-amber-100 text-amber-700' },
-  { name: 'Luffy', avatar: '☠', tone: 'bg-red-100 text-red-700' },
-  { name: 'Batman', avatar: '🦇', tone: 'bg-zinc-200 text-zinc-800' },
-  { name: 'Spiderman', avatar: '🕸', tone: 'bg-rose-100 text-rose-700' },
-  { name: 'Arthur Morgan', avatar: '🤠', tone: 'bg-stone-200 text-stone-700' },
-  { name: 'Halo', avatar: '🛡', tone: 'bg-emerald-100 text-emerald-700' },
-  { name: 'Walter White', avatar: '⚗', tone: 'bg-lime-100 text-lime-800' },
-  { name: 'Alex Sintek', avatar: '♫', tone: 'bg-sky-100 text-sky-700' },
-  { name: 'Samuel Garcia', avatar: 'S', tone: 'bg-blue-100 text-blue-700' },
-];
+const CHARACTER_PRESENTATION = {
+  Goku: { avatar: '⚡', tone: 'bg-orange-100 text-orange-700' },
+  Naruto: { avatar: '🍥', tone: 'bg-amber-100 text-amber-700' },
+  Luffy: { avatar: '☠', tone: 'bg-red-100 text-red-700' },
+  Batman: { avatar: '🦇', tone: 'bg-zinc-200 text-zinc-800' },
+  Spiderman: { avatar: '🕸', tone: 'bg-rose-100 text-rose-700' },
+  'Arthur Morgan': { avatar: '🤠', tone: 'bg-stone-200 text-stone-700' },
+  Halo: { avatar: '🛡', tone: 'bg-emerald-100 text-emerald-700' },
+  'Walter White': { avatar: '⚗', tone: 'bg-lime-100 text-lime-800' },
+  'Alex Sintek': { avatar: '♫', tone: 'bg-sky-100 text-sky-700' },
+  'Samuel Garcia': { avatar: 'S', tone: 'bg-blue-100 text-blue-700' },
+};
+
+const CHARACTERS = LLAMA_PERSONALITIES.map(({ name }) => ({
+  name,
+  ...(CHARACTER_PRESENTATION[name] ?? { avatar: name.charAt(0), tone: 'bg-zinc-200 text-zinc-700' }),
+}));
 
 const INITIAL_VALUES = [8, 3, 1, 7, 0, 10, 2];
 
@@ -33,7 +38,9 @@ export default function VisualizerDashboard() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [arrayInputs, setArrayInputs] = useState(INITIAL_VALUES);
   const [target, setTarget] = useState('7');
-  const [selectedCharacter, setSelectedCharacter] = useState(CHARACTERS[1]);
+  const [selectedCharacter, setSelectedCharacter] = useState(
+    CHARACTERS.find((character) => character.name === 'Naruto') ?? CHARACTERS[0],
+  );
   const [overviewResult, setOverviewResult] = useState(null);
   const [overviewRequestVersion, setOverviewRequestVersion] = useState(0);
   const [explanationTab, setExplanationTab] = useState('step');
