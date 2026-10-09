@@ -1,3 +1,5 @@
+import LLAMA_CHARACTER_PROFILES from '../config/llamaCharacters.json' with { type: 'json' };
+
 const API_URL = 'http://127.0.0.1:8000';
 
 const LLAMA_PERSONALITY_PROMPTS = {
@@ -97,6 +99,20 @@ export async function fetchAlgorithmOverview(algorithmName, selectedCharacter = 
   }
 
   const personalityPrompt = LLAMA_PERSONALITY_PROMPTS[selectedCharacter] ?? LLAMA_PERSONALITY_PROMPTS.Naruto;
+  const characterProfile = LLAMA_CHARACTER_PROFILES[selectedCharacter];
+  const characterProfilePrompt = characterProfile
+    ? `
+Perfil detallado del personaje:
+Personalidad: ${characterProfile.personality}
+Tono: ${characterProfile.tone}
+Estilo al hablar: ${characterProfile.speaking_style}
+Analogía temática: ${characterProfile.analogy}
+Guía de analogías: ${characterProfile.analogy_guidance}
+Reglas de interpretación:
+${characterProfile.roleplay_rules.map((rule) => `- ${rule}`).join('\n')}
+Frases características disponibles: ${characterProfile.catchphrases.join(' | ')}
+Intensidad: ${characterProfile.intensity}`
+    : '';
   const prompt = `Eres un asistente educativo de ciencias de la computación. El algoritmo seleccionado es ${algorithmName}.
 
 Explicación base del algoritmo:
@@ -104,8 +120,14 @@ ${algorithmOverview}
 
 Personalidad activa (${selectedCharacter}):
 ${personalityPrompt}
+${characterProfilePrompt}
 
-Parafrasea la explicación base en español con la personalidad activa. Describe qué es el algoritmo, cómo funciona en términos generales, cuándo conviene usarlo y su rendimiento, sin narrar una ejecución concreta ni enumerar pasos. Escribe un único párrafo breve, incluye el saludo configurado al inicio, integra la expresión recurrente una vez de forma natural y termina con la despedida configurada. Conserva la precisión técnica y no agregues afirmaciones que no aparezcan en la explicación base. Devuelve solo texto plano, sin JSON ni Markdown.`;
+Redacta una descripción larga en español, de aproximadamente 250 a 350 palabras, con la personalidad activa y sin perder precisión técnica. Organiza la respuesta en cuatro o cinco párrafos de texto plano:
+1. Inicia con el saludo original configurado para el personaje y presenta qué es el algoritmo y qué problema resuelve.
+2. Explica con detalle su idea de funcionamiento y sus conceptos principales, pero no narres una ejecución concreta ni enumeres pasos de una simulación.
+3. Describe cuándo conviene usarlo, sus ventajas, limitaciones y requisitos relevantes.
+4. Explica su rendimiento temporal y espacial con los casos que indique la explicación base; no inventes datos.
+Integra como máximo una vez y de forma natural la expresión recurrente original. Termina exactamente con la despedida original configurada para el personaje. Conserva las analogías y reglas de interpretación del personaje cuando ayuden a comprender el tema, sin sacrificar exactitud. No agregues afirmaciones que no aparezcan en la explicación base. Devuelve únicamente los párrafos, sin títulos, listas, JSON ni Markdown.`;
 
   return (await askLlama(prompt, apiUrl)).trim();
 }

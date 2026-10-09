@@ -34,11 +34,12 @@ export default function VisualizerDashboard() {
   const [target, setTarget] = useState('7');
   const [selectedCharacter, setSelectedCharacter] = useState(CHARACTERS[1]);
   const [overviewResult, setOverviewResult] = useState(null);
+  const [overviewRequestVersion, setOverviewRequestVersion] = useState(0);
   const [explanationTab, setExplanationTab] = useState('step');
   const activeInfo = ALGORITHMS.find((algorithm) => algorithm.id === activeAlgorithm);
   const overviewRequestKey = `${activeInfo.id}:${selectedCharacter.name}`;
   const overview = overviewResult?.key === overviewRequestKey ? overviewResult.text : '';
-  const overviewLoading = overviewResult?.key !== overviewRequestKey;
+  const overviewLoading = overviewResult?.key !== overviewRequestKey || overviewResult?.requestVersion !== overviewRequestVersion;
   const { steps, currentStepIndex, currentStep, setCurrentStepIndex } = useAlgorithmSimulation(activeAlgorithm, arrayInputs, target);
   const comparisons = steps.slice(0, currentStepIndex + 1).filter((step) => step.comparingIndices?.length).length;
   const movements = steps.slice(0, currentStepIndex + 1).filter((step) => step.swappedIndices?.length).length;
@@ -56,10 +57,10 @@ export default function VisualizerDashboard() {
   useEffect(() => {
     let isCurrentRequest = true;
     fetchAlgorithmOverview(activeInfo.name, selectedCharacter.name)
-      .then((text) => { if (isCurrentRequest) setOverviewResult({ key: overviewRequestKey, text }); })
-      .catch(() => { if (isCurrentRequest) setOverviewResult({ key: overviewRequestKey, text: `${activeInfo.summary} La explicación personalizada no está disponible; comprueba que Ollama y su API estén activos.` }); });
+      .then((text) => { if (isCurrentRequest) setOverviewResult({ key: overviewRequestKey, requestVersion: overviewRequestVersion, text, error: false }); })
+      .catch(() => { if (isCurrentRequest) setOverviewResult({ key: overviewRequestKey, requestVersion: overviewRequestVersion, text: `${activeInfo.summary} La API de Llama no respondió. Comprueba que Ollama y el backend estén activos e inténtalo de nuevo.`, error: true }); });
     return () => { isCurrentRequest = false; };
-  }, [activeInfo, overviewRequestKey, selectedCharacter]);
+  }, [activeInfo, overviewRequestKey, overviewRequestVersion, selectedCharacter]);
 
   useEffect(() => {
     if (!isPlaying) return undefined;
@@ -264,7 +265,13 @@ export default function VisualizerDashboard() {
                     </div>
                     {overviewLoading && <span className="h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-zinc-200 border-t-sky-600" aria-label="Generando descripción" />}
                   </div>
-                  <p aria-live="polite" className="mt-3 text-xs leading-5 text-zinc-600">{overview || activeInfo.summary}</p>
+                  <button
+                    type="button"
+                    disabled={overviewLoading}
+                    onClick={() => setOverviewRequestVersion((version) => version + 1)}
+                    className="mt-3 border border-sky-200 bg-sky-50 px-2.5 py-1.5 text-[11px] font-semibold text-sky-800 transition hover:border-sky-400 hover:bg-sky-100 disabled:cursor-wait disabled:opacity-50"
+                  >{overviewResult?.error && overviewResult.key === overviewRequestKey ? 'Reintentar descripción' : 'Generar de nuevo'}</button>
+                  <div aria-live="polite" className={`mt-3 whitespace-pre-line text-xs leading-6 ${overviewResult?.error && overviewResult.key === overviewRequestKey ? 'text-rose-700' : 'text-zinc-600'}`}>{overview || activeInfo.summary}</div>
                   <div className="mt-3 space-y-2 border-t border-zinc-100 pt-3">
                     <div><h4 className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Aplicaciones</h4><p className="mt-1 text-xs leading-5 text-zinc-600">{activeInfo.application}</p></div>
                     <div><h4 className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Ventaja principal</h4><p className="mt-1 text-xs leading-5 text-zinc-600">{activeInfo.benefit}</p></div>
