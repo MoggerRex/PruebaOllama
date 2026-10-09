@@ -5,11 +5,12 @@ import SpeechControls from '../components/common/SpeechControls.jsx';
 import useAlgorithmSimulation from '../hooks/useAlgorithmSimulation.js';
 import { fetchAlgorithmOverview, LLAMA_PERSONALITIES } from '../services/llamaService.js';
 
+
 const ALGORITHMS = [
-  { id: 'quicksort', name: 'Quick sort', kind: 'Ordenamiento', complexity: 'O(n log n)', worst: 'O(n²)', application: 'Ordenar colecciones grandes en memoria.', benefit: 'Muy rápido en promedio y requiere poca memoria adicional.', summary: 'Divide el arreglo alrededor de un pivote y ordena cada parte.' },
+  { id: 'binarysearch', name: 'Binary search', kind: 'Búsqueda', complexity: 'O(log n)', worst: 'O(log n)', application: 'Colecciones ordenadas y catálogos.', benefit: 'Reduce a la mitad los datos candidatos en cada comparación.', summary: 'Compara el centro y descarta la mitad que no puede contener el objetivo.' },
   { id: 'insertionsort', name: 'Insertion sort', kind: 'Ordenamiento', complexity: 'O(n²)', worst: 'O(n²)', application: 'Listas pequeñas o casi ordenadas.', benefit: 'Simple, estable y eficiente cuando hay pocos cambios.', summary: 'Inserta cada valor en la posición correcta de una sección ordenada.' },
   { id: 'hashsearch', name: 'Hash search', kind: 'Búsqueda', complexity: 'O(1) promedio', worst: 'O(n)', application: 'Índices, cachés y búsquedas por clave.', benefit: 'Acceso promedio constante con una buena distribución.', summary: 'Convierte una clave en una cubeta y resuelve posibles colisiones.' },
-  { id: 'binarysearch', name: 'Binary search', kind: 'Búsqueda', complexity: 'O(log n)', worst: 'O(log n)', application: 'Colecciones ordenadas y catálogos.', benefit: 'Reduce a la mitad los datos candidatos en cada comparación.', summary: 'Compara el centro y descarta la mitad que no puede contener el objetivo.' },
+  { id: 'quicksort', name: 'Quick sort', kind: 'Ordenamiento', complexity: 'O(n log n)', worst: 'O(n²)', application: 'Ordenar colecciones grandes en memoria.', benefit: 'Muy rápido en promedio y requiere poca memoria adicional.', summary: 'Divide el arreglo alrededor de un pivote y ordena cada parte.' },
 ];
 
 const CHARACTER_PRESENTATION = {
@@ -114,7 +115,7 @@ export default function VisualizerDashboard() {
               <i className="rounded-[2px] bg-white" /><i className="rounded-[2px] bg-sky-400" />
               <i className="rounded-[2px] bg-white" /><i className="rounded-[2px] bg-white" />
             </span>
-            <span className="text-sm font-bold tracking-wide">BLIQLAB</span>
+            <span className="text-sm font-bold tracking-wide">BIHQLAB</span>
           </a>
           <span className="hidden h-7 w-px bg-zinc-200 sm:block" />
           <nav aria-label="Seleccionar algoritmo" className="flex min-w-0 gap-1 overflow-x-auto pb-0.5">
