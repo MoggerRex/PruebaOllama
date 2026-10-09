@@ -5,25 +5,31 @@ import SpeechControls from '../components/common/SpeechControls.jsx';
 import useAlgorithmSimulation from '../hooks/useAlgorithmSimulation.js';
 import { fetchAlgorithmOverview, LLAMA_PERSONALITIES } from '../services/llamaService.js';
 
+
 const ALGORITHMS = [
-  { id: 'quicksort', name: 'Quick sort', kind: 'Ordenamiento', complexity: 'O(n log n)', worst: 'O(n²)', application: 'Ordenar colecciones grandes en memoria.', benefit: 'Muy rápido en promedio y requiere poca memoria adicional.', summary: 'Divide el arreglo alrededor de un pivote y ordena cada parte.' },
+  { id: 'binarysearch', name: 'Binary search', kind: 'Búsqueda', complexity: 'O(log n)', worst: 'O(log n)', application: 'Colecciones ordenadas y catálogos.', benefit: 'Reduce a la mitad los datos candidatos en cada comparación.', summary: 'Compara el centro y descarta la mitad que no puede contener el objetivo.' },
   { id: 'insertionsort', name: 'Insertion sort', kind: 'Ordenamiento', complexity: 'O(n²)', worst: 'O(n²)', application: 'Listas pequeñas o casi ordenadas.', benefit: 'Simple, estable y eficiente cuando hay pocos cambios.', summary: 'Inserta cada valor en la posición correcta de una sección ordenada.' },
   { id: 'hashsearch', name: 'Hash search', kind: 'Búsqueda', complexity: 'O(1) promedio', worst: 'O(n)', application: 'Índices, cachés y búsquedas por clave.', benefit: 'Acceso promedio constante con una buena distribución.', summary: 'Convierte una clave en una cubeta y resuelve posibles colisiones.' },
-  { id: 'binarysearch', name: 'Binary search', kind: 'Búsqueda', complexity: 'O(log n)', worst: 'O(log n)', application: 'Colecciones ordenadas y catálogos.', benefit: 'Reduce a la mitad los datos candidatos en cada comparación.', summary: 'Compara el centro y descarta la mitad que no puede contener el objetivo.' },
+  { id: 'quicksort', name: 'Quick sort', kind: 'Ordenamiento', complexity: 'O(n log n)', worst: 'O(n²)', application: 'Ordenar colecciones grandes en memoria.', benefit: 'Muy rápido en promedio y requiere poca memoria adicional.', summary: 'Divide el arreglo alrededor de un pivote y ordena cada parte.' },
 ];
 
-const CHARACTERS = [
-  { name: 'Goku', avatar: '⚡', tone: 'bg-orange-100 text-orange-700' },
-  { name: 'Naruto', avatar: '🍥', tone: 'bg-amber-100 text-amber-700' },
-  { name: 'Luffy', avatar: '☠', tone: 'bg-red-100 text-red-700' },
-  { name: 'Batman', avatar: '🦇', tone: 'bg-zinc-200 text-zinc-800' },
-  { name: 'Spiderman', avatar: '🕸', tone: 'bg-rose-100 text-rose-700' },
-  { name: 'Arthur Morgan', avatar: '🤠', tone: 'bg-stone-200 text-stone-700' },
-  { name: 'Halo', avatar: '🛡', tone: 'bg-emerald-100 text-emerald-700' },
-  { name: 'Walter White', avatar: '⚗', tone: 'bg-lime-100 text-lime-800' },
-  { name: 'Alex Sintek', avatar: '♫', tone: 'bg-sky-100 text-sky-700' },
-  { name: 'Samuel Garcia', avatar: 'S', tone: 'bg-blue-100 text-blue-700' },
-];
+const CHARACTER_PRESENTATION = {
+  Goku: { avatar: '⚡', tone: 'bg-orange-100 text-orange-700' },
+  Naruto: { avatar: '🍥', tone: 'bg-amber-100 text-amber-700' },
+  Luffy: { avatar: '☠', tone: 'bg-red-100 text-red-700' },
+  Batman: { avatar: '🦇', tone: 'bg-zinc-200 text-zinc-800' },
+  Spiderman: { avatar: '🕸', tone: 'bg-rose-100 text-rose-700' },
+  'Arthur Morgan': { avatar: '🤠', tone: 'bg-stone-200 text-stone-700' },
+  Halo: { avatar: '🛡', tone: 'bg-emerald-100 text-emerald-700' },
+  'Walter White': { avatar: '⚗', tone: 'bg-lime-100 text-lime-800' },
+  'Alex Sintek': { avatar: '♫', tone: 'bg-sky-100 text-sky-700' },
+  'Samuel Garcia': { avatar: 'S', tone: 'bg-blue-100 text-blue-700' },
+};
+
+const CHARACTERS = LLAMA_PERSONALITIES.map(({ name }) => ({
+  name,
+  ...(CHARACTER_PRESENTATION[name] ?? { avatar: name.charAt(0), tone: 'bg-zinc-200 text-zinc-700' }),
+}));
 
 const INITIAL_VALUES = [8, 3, 1, 7, 0, 10, 2];
 
@@ -33,7 +39,9 @@ export default function VisualizerDashboard() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [arrayInputs, setArrayInputs] = useState(INITIAL_VALUES);
   const [target, setTarget] = useState('7');
-  const [selectedCharacter, setSelectedCharacter] = useState(CHARACTERS[1]);
+  const [selectedCharacter, setSelectedCharacter] = useState(
+    CHARACTERS.find((character) => character.name === 'Naruto') ?? CHARACTERS[0],
+  );
   const [overviewResult, setOverviewResult] = useState(null);
   const [overviewRequestVersion, setOverviewRequestVersion] = useState(0);
   const [explanationTab, setExplanationTab] = useState('step');
@@ -107,7 +115,7 @@ export default function VisualizerDashboard() {
               <i className="rounded-[2px] bg-white" /><i className="rounded-[2px] bg-sky-400" />
               <i className="rounded-[2px] bg-white" /><i className="rounded-[2px] bg-white" />
             </span>
-            <span className="text-sm font-bold tracking-wide">BLIQLAB</span>
+            <span className="text-sm font-bold tracking-wide">BIHQLAB</span>
           </a>
           <span className="hidden h-7 w-px bg-zinc-200 sm:block" />
           <nav aria-label="Seleccionar algoritmo" className="flex min-w-0 gap-1 overflow-x-auto pb-0.5">

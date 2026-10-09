@@ -1,5 +1,4 @@
 
-from enum import Enum
 from pathlib import Path
 from typing import Literal
 import json
@@ -23,16 +22,6 @@ CHARACTERS_PATH = (
     / "src"
     / "config"
     / "llamaCharacters.json"
-)
-
-CHARACTER_PROMPTS = json.loads(
-    CHARACTERS_PATH.read_text(encoding="utf-8")
-)
-
-CharacterType = Enum(
-    "CharacterType",
-    {name: name for name in CHARACTER_PROMPTS},
-    type=str
 )
 
 AlgorithmType = Literal[
@@ -213,12 +202,12 @@ class AlgorithmOverviewRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     algorithm: AlgorithmType
-    character: CharacterType
+    character: str
 
 
 class AlgorithmOverviewResponse(BaseModel):
     algorithm: AlgorithmType
-    character: CharacterType
+    character: str
     explanation: str
 
 
@@ -231,8 +220,15 @@ class SpeakRequest(BaseModel):
 # FUNCIONES AUXILIARES
 # ============================================================
 
-def get_character_profile(character: CharacterType) -> str:
-    char_info = CHARACTER_PROMPTS[character.value]
+def get_character_profile(character: str) -> str:
+    character_profiles = json.loads(CHARACTERS_PATH.read_text(encoding="utf-8"))
+    char_info = character_profiles.get(character)
+
+    if char_info is None:
+        raise HTTPException(
+            status_code=422,
+            detail=f"No hay un perfil configurado para el personaje '{character}'."
+        )
 
     if isinstance(char_info, dict):
         return json.dumps(
@@ -269,7 +265,7 @@ def get_algorithm(request: AlgorithmOverviewRequest):
 
         system_prompt = f"""
 Eres un tutor experto en Estructuras de Datos y Algoritmos que explica
-el tema con la voz del personaje {request.character.value}.
+    el tema con la voz del personaje {request.character}.
 
 PERFIL AUTORITATIVO DEL PERSONAJE (tomado de llamaCharacters.json):
 {character_profile}
@@ -355,6 +351,9 @@ y la respuesta debe ser breve.
             "explanation": explanation.strip()
         }
 
+    except HTTPException:
+        raise
+
     except ConnectionError as error:
         raise HTTPException(
             status_code=503,
@@ -401,7 +400,7 @@ def home():
 # ENDPOINT: TEXTO A VOZ
 # ============================================================
 
-@app.post("/speak")
+@app.post("/speech")
 async def speak(request: SpeakRequest):
     text = clean_text_for_speech(request.text)
     if not text:
