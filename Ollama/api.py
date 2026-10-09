@@ -400,7 +400,7 @@ def home():
 # ENDPOINT: TEXTO A VOZ
 # ============================================================
 
-@app.post("/speak")
+@app.post("/speech")
 async def speak(request: SpeakRequest):
     text = clean_text_for_speech(request.text)
     if not text:
