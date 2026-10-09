@@ -1,68 +1,89 @@
 import { useState } from 'react';
 
-const snapshot = (array, details) => ({ array: [...array], ...details });
+const snapshot = (array, details = {}) => ({
+  array: [...array],
+  ...details,
+  itemIds: [...(details.itemIds ?? array.map((_, index) => index))],
+});
 
 function createQuickSortSteps(values) {
   const array = [...values];
+  const itemIds = array.map((_, index) => index);
   const steps = [];
+  const sortedIndices = new Set();
+  const state = (details = {}) => ({ itemIds, sortedIndices: [...sortedIndices], ...details });
 
   function partition(low, high) {
     const pivot = array[high];
     let boundary = low - 1;
-    steps.push(snapshot(array, { pivotIndex: high, explanation: `Elegimos ${pivot} como pivote y revisamos el tramo de índices ${low} a ${high}.` }));
+    steps.push(snapshot(array, state({ pivotIndex: high, explanation: `Elegimos ${pivot} como pivote y revisamos el tramo de índices ${low} a ${high}.` })));
 
     for (let index = low; index < high; index += 1) {
-      steps.push(snapshot(array, {
+      steps.push(snapshot(array, state({
         pivotIndex: high,
         comparingIndices: [index],
         explanation: `${array[index]} ${array[index] < pivot ? 'es menor' : 'no es menor'} que el pivote ${pivot}.`,
-      }));
+      })));
       if (array[index] < pivot) {
         boundary += 1;
         if (boundary !== index) {
           [array[boundary], array[index]] = [array[index], array[boundary]];
-          steps.push(snapshot(array, { pivotIndex: high, swappedIndices: [boundary, index], explanation: `Intercambiamos ambos valores para dejar ${array[boundary]} en el grupo menor al pivote.` }));
+          [itemIds[boundary], itemIds[index]] = [itemIds[index], itemIds[boundary]];
+          steps.push(snapshot(array, state({ pivotIndex: high, swappedIndices: [boundary, index], explanation: `Intercambiamos ambos valores para dejar ${array[boundary]} en el grupo menor al pivote.` })));
         }
       }
     }
 
     if (boundary + 1 !== high) {
       [array[boundary + 1], array[high]] = [array[high], array[boundary + 1]];
+      [itemIds[boundary + 1], itemIds[high]] = [itemIds[high], itemIds[boundary + 1]];
     }
-    steps.push(snapshot(array, { pivotIndex: boundary + 1, swappedIndices: [boundary + 1, high], explanation: `El pivote queda en su posición definitiva: índice ${boundary + 1}.` }));
+    sortedIndices.add(boundary + 1);
+    steps.push(snapshot(array, state({ pivotIndex: boundary + 1, swappedIndices: [boundary + 1, high], explanation: `El pivote queda en su posición definitiva: índice ${boundary + 1}.` })));
     return boundary + 1;
   }
 
   function sort(low, high) {
-    if (low >= high) return;
+    if (low > high) return;
+    if (low === high) {
+      sortedIndices.add(low);
+      steps.push(snapshot(array, state({ explanation: `El valor ${array[low]} ocupa la única posición de su tramo y queda en orden.` })));
+      return;
+    }
     const pivot = partition(low, high);
     sort(low, pivot - 1);
     sort(pivot + 1, high);
   }
 
   sort(0, array.length - 1);
-  steps.push(snapshot(array, { explanation: 'Quicksort terminó: los elementos quedaron ordenados.' }));
+  steps.push(snapshot(array, state({ explanation: 'Quicksort terminó: los elementos quedaron ordenados.' })));
   return steps;
 }
 
 function createInsertionSortSteps(values) {
   const array = [...values];
-  const steps = [snapshot(array, { explanation: 'La primera posición forma una sección ordenada de un elemento.' })];
+  const itemIds = array.map((_, index) => index);
+  const steps = [snapshot(array, { itemIds, sortedThrough: 0, explanation: 'La primera posición forma una sección ordenada de un elemento.' })];
 
   for (let index = 1; index < array.length; index += 1) {
     const current = array[index];
+    const currentId = itemIds[index];
     let cursor = index - 1;
-    steps.push(snapshot(array, { comparingIndices: [index], activeIndices: [index], explanation: `Tomamos ${current} y buscamos dónde insertarlo en la parte ordenada.` }));
+    steps.push(snapshot(array, { itemIds, sortedThrough: index - 1, comparingIndices: [index], activeIndices: [index], explanation: `Tomamos ${current} y buscamos dónde insertarlo en la parte ordenada.` }));
     while (cursor >= 0 && array[cursor] > current) {
-      array[cursor + 1] = array[cursor];
-      steps.push(snapshot(array, { comparingIndices: [cursor], swappedIndices: [cursor + 1], activeIndices: [index], explanation: `${array[cursor]} es mayor que ${current}; lo desplazamos una posición a la derecha.` }));
+      const displacedValue = array[cursor];
+      const displacedId = itemIds[cursor];
+      array[cursor] = current;
+      array[cursor + 1] = displacedValue;
+      itemIds[cursor] = currentId;
+      itemIds[cursor + 1] = displacedId;
+      steps.push(snapshot(array, { itemIds, sortedThrough: index - 1, comparingIndices: [cursor, cursor + 1], swappedIndices: [cursor, cursor + 1], activeIndices: [cursor + 1], explanation: `${displacedValue} es mayor que ${current}; intercambiamos ambos valores para acercar ${current} a su posición.` }));
       cursor -= 1;
     }
-    array[cursor + 1] = current;
-    steps.push(snapshot(array, { activeIndices: [cursor + 1], swappedIndices: [cursor + 1], explanation: `Insertamos ${current} en el índice ${cursor + 1}. La sección ordenada crece.` }));
+    steps.push(snapshot(array, { itemIds, sortedThrough: index, activeIndices: [cursor + 1], swappedIndices: [cursor + 1], explanation: `Insertamos ${current} en el índice ${cursor + 1}. La sección ordenada crece.` }));
   }
 
-  steps.push(snapshot(array, { explanation: 'Inserción terminó: el arreglo está ordenado.' }));
+  steps.push(snapshot(array, { itemIds, sortedThrough: array.length - 1, explanation: 'Inserción terminó: el arreglo está ordenado.' }));
   return steps;
 }
 
