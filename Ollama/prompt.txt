@@ -1,0 +1,22 @@
+Actúa como un desarrollador Senior en Python y FastAPI. Necesito modificar mi endpoint `/speak` existente para que utilice RVC (Retrieval-based Voice Conversion) únicamente cuando el personaje solicitado sea "Goku", convirtiendo la voz neutra de `edge-tts` en la voz real de Goku.
+
+### Requisitos Técnicos:
+
+1. **Dependencia:** Utiliza `from rvc_python.infer import RVCInference`.
+2. **Configuración única para Goku:**
+   - Modelo `.pth`: `"models/Goku.pth"`
+   - Archivo de índice `.index`: `"models/Goku.index"`
+   - Ajuste de tono (`f0_up_key`): `0` (o `6` para agudo según se requiera).
+3. **Lógica de Fallback:**
+   - Si `request.character == "Goku"` y los archivos de su modelo existen, ejecuta la conversión con RVC.
+   - Si se solicita cualquier otro personaje o los archivos de Goku no están presentes, devuelve directamente el audio neutro generado por `edge-tts` sin lanzar un error.
+4. **Manejo de Archivos Temporales:**
+   - Usa `tempfile.NamedTemporaryFile` para guardar el audio base de `edge-tts` y el audio convertido de RVC.
+   - Asegúrate de eliminar los archivos temporales creados en un bloque `finally`.
+5. **Parámetros de RVC:**
+   - `f0_method`: `"rmvpe"`
+   - `index_rate`: `0.75`
+   - `protect`: `0.33`
+   - Dispositivo: `"cuda:0"` si hay GPU disponible, de lo contrario `"cpu"`.
+
+Escribe la función de auxilio y actualiza el endpoint `/speak` en mi archivo `api.py`. Entrégame el código limpio y listo para integrar.
