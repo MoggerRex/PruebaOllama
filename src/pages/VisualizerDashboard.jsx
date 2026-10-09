@@ -23,6 +23,7 @@ const CHARACTER_PRESENTATION = {
   Halo: { avatar: '🛡', tone: 'bg-emerald-100 text-emerald-700' },
   'Walter White': { avatar: '⚗', tone: 'bg-lime-100 text-lime-800' },
   'Alex Sintek': { avatar: '♫', tone: 'bg-sky-100 text-sky-700' },
+  'Profesor BIHQ': { avatar: '🎓', tone: 'bg-violet-100 text-violet-700' },
   'Samuel Garcia': { avatar: 'S', tone: 'bg-blue-100 text-blue-700' },
 };
 
