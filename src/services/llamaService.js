@@ -57,7 +57,7 @@ export async function fetchSpeech(text, profile = 'normal', apiUrl = API_URL) {
 
 
 /** Generates one personality-based overview for the selected algorithm. */
-export async function fetchAlgorithmOverview(algorithmName, selectedCharacter = 'Naruto', apiUrl = API_URL) {
+export async function fetchAlgorithmOverview(algorithmName, selectedCharacter = 'Profesor BIHQ', apiUrl = API_URL) {
   const normalizedName = algorithmName
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
@@ -70,7 +70,7 @@ export async function fetchAlgorithmOverview(algorithmName, selectedCharacter = 
     throw new Error(`No hay una explicación base configurada para "${algorithmName}".`);
   }
 
-  const character = LLAMA_CHARACTER_PROFILES[selectedCharacter] ? selectedCharacter : 'Naruto';
+  const character = LLAMA_CHARACTER_PROFILES[selectedCharacter] ? selectedCharacter : 'Profesor BIHQ';
   const response = await fetch(`${apiUrl}/algorithm`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

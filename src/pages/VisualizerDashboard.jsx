@@ -41,7 +41,7 @@ export default function VisualizerDashboard() {
   const [arrayInputs, setArrayInputs] = useState(INITIAL_VALUES);
   const [target, setTarget] = useState('7');
   const [selectedCharacter, setSelectedCharacter] = useState(
-    CHARACTERS.find((character) => character.name === 'Naruto') ?? CHARACTERS[0],
+    CHARACTERS.find((character) => character.name === 'Profesor BIHQ') ?? CHARACTERS[0],
   );
   const [overviewResult, setOverviewResult] = useState(null);
   const [overviewRequestVersion, setOverviewRequestVersion] = useState(0);
