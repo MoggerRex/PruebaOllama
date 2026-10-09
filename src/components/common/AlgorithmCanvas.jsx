@@ -79,6 +79,7 @@ function BinarySearchCells({ step, target }) {
             const isDiscarded = index < low || index > high;
             const isMiddle = index === middle;
             const isFound = status === 'found' && isMiddle;
+            const hasActiveRange = low <= high;
             const cellStyle = isDiscarded
               ? 'border-zinc-300 bg-zinc-200 text-zinc-400'
               : isFound
@@ -88,18 +89,21 @@ function BinarySearchCells({ step, target }) {
                   : 'border-zinc-300 bg-white text-zinc-800';
 
             return (
-              <motion.div
-                key={`${value}-${index}`}
-                layout
-                animate={{ opacity: isDiscarded ? 0.55 : 1, y: isMiddle && !isDiscarded ? -4 : 0 }}
-                transition={{ type: 'spring', stiffness: 240, damping: 22 }}
-                className={`relative flex h-12 w-12 shrink-0 items-center justify-center border text-sm font-semibold sm:h-14 sm:w-16 sm:text-base ${cellStyle}`}
-                aria-label={`Índice ${index}, valor ${value}${isDiscarded ? ', descartado' : isMiddle ? ', centro' : ''}`}
-              >
-                {index === low && low <= high && <span className="absolute -top-6 text-[10px] font-black uppercase text-sky-700">L</span>}
-                {index === high && low <= high && <span className="absolute -top-6 text-[10px] font-black uppercase text-sky-700">H</span>}
-                {value}
-              </motion.div>
+              <div key={`${value}-${index}`} className="relative flex shrink-0 flex-col items-center">
+                <motion.div
+                  layout
+                  animate={{ opacity: isDiscarded ? 0.55 : 1, y: isMiddle && !isDiscarded ? -4 : 0 }}
+                  transition={{ type: 'spring', stiffness: 240, damping: 22 }}
+                  className={`relative flex h-12 w-12 items-center justify-center border text-sm font-semibold sm:h-14 sm:w-16 sm:text-base ${cellStyle}`}
+                  aria-label={`Índice ${index}, valor ${value}${isDiscarded ? ', descartado' : isMiddle ? ', centro' : ''}`}
+                >
+                  {hasActiveRange && low === high && index === low && <span className="absolute -top-6 whitespace-nowrap text-[10px] font-black uppercase text-sky-700">L/H</span>}
+                  {hasActiveRange && low !== high && index === low && <span className="absolute -top-6 text-[10px] font-black uppercase text-sky-700">L</span>}
+                  {hasActiveRange && low !== high && index === high && <span className="absolute -top-6 text-[10px] font-black uppercase text-sky-700">H</span>}
+                  {value}
+                </motion.div>
+                <span className="mt-2 text-[10px] font-medium tabular-nums text-zinc-500">[{index}]</span>
+              </div>
             );
           })}
         </div>

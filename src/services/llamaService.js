@@ -83,6 +83,21 @@ export async function askLlama(prompt, apiUrl = API_URL) {
   return data.answer;
 }
 
+export async function fetchSpeech(text, profile = 'normal', apiUrl = API_URL) {
+  const response = await fetch(`${apiUrl}/speech`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text, profile }),
+  });
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    throw new Error(data.detail || 'No se pudo generar el audio de voz.');
+  }
+
+  return response.blob();
+}
+
 
 /** Generates one personality-based overview for the selected algorithm. */
 export async function fetchAlgorithmOverview(algorithmName, selectedCharacter = 'Naruto', apiUrl = API_URL) {

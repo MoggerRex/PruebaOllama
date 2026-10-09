@@ -87,40 +87,51 @@ function createInsertionSortSteps(values) {
   return steps;
 }
 
-function createBinarySearchSteps(values, target) {
+export function createBinarySearchSteps(values, target) {
+  const numericTarget = target === '' || target === null || target === undefined ? Number.NaN : Number(target);
   const array = [...values].sort((left, right) => left - right);
   const steps = [];
   let low = 0;
   let high = array.length - 1;
+  if (!Number.isFinite(numericTarget)) {
+    steps.push(snapshot(array, { low, high, status: 'invalid', explanation: 'Ingresa un objetivo numérico válido para iniciar la búsqueda.' }));
+    return steps;
+  }
   steps.push(snapshot(array, { low, high, explanation: 'Ordenamos los datos primero, porque la búsqueda binaria necesita una secuencia ordenada.' }));
 
   while (low <= high) {
     const middle = Math.floor((low + high) / 2);
     const value = array[middle];
-    steps.push(snapshot(array, { low, high, middle, comparingIndices: [middle], explanation: `Comparamos ${target} con el valor central ${value} (índice ${middle}).` }));
-    if (value === target) {
-      steps.push(snapshot(array, { low, high, middle, activeIndices: [middle], status: 'found', explanation: `Encontramos ${target} en el índice ${middle}.` }));
+    steps.push(snapshot(array, { low, high, middle, comparingIndices: [middle], explanation: `Comparamos ${numericTarget} con el valor central ${value} (índice ${middle}).` }));
+    if (value === numericTarget) {
+      steps.push(snapshot(array, { low, high, middle, activeIndices: [middle], status: 'found', explanation: `Encontramos ${numericTarget} en el índice ${middle}.` }));
       return steps;
     }
-    if (value < target) {
+    if (value < numericTarget) {
       low = middle + 1;
-      steps.push(snapshot(array, { low, high, middle, explanation: `${value} es menor que ${target}; descartamos la mitad izquierda.` }));
+      steps.push(snapshot(array, { low, high, middle, explanation: `${value} es menor que ${numericTarget}; descartamos la mitad izquierda.` }));
     } else {
       high = middle - 1;
-      steps.push(snapshot(array, { low, high, middle, explanation: `${value} es mayor que ${target}; descartamos la mitad derecha.` }));
+      steps.push(snapshot(array, { low, high, middle, explanation: `${value} es mayor que ${numericTarget}; descartamos la mitad derecha.` }));
     }
   }
 
-  steps.push(snapshot(array, { low, high, status: 'missing', explanation: `${target} no aparece. El intervalo quedó vacío, así que terminamos.` }));
+  steps.push(snapshot(array, { low, high, status: 'missing', explanation: `${numericTarget} no aparece. El intervalo quedó vacío, así que terminamos.` }));
   return steps;
 }
 
-function createHashSearchSteps(values, target) {
+export function createHashSearchSteps(values, target) {
+  const numericTarget = target === '' || target === null || target === undefined ? Number.NaN : Number(target);
   const bucketCount = Math.max(3, Math.ceil(Math.sqrt(values.length)) + 1);
   const buckets = Array.from({ length: bucketCount }, () => []);
   const steps = [];
   const bucketFor = (value) => ((value % bucketCount) + bucketCount) % bucketCount;
   const addStep = (details) => steps.push({ array: [...values], buckets: buckets.map((bucket) => [...bucket]), ...details });
+
+  if (!Number.isFinite(numericTarget)) {
+    addStep({ status: 'invalid', explanation: 'Ingresa un objetivo numérico válido para iniciar la búsqueda.' });
+    return steps;
+  }
 
   addStep({ explanation: `Creamos ${bucketCount} cubetas vacías para construir la tabla hash.` });
   values.forEach((value) => {
@@ -129,16 +140,16 @@ function createHashSearchSteps(values, target) {
     addStep({ activeBucket: bucketIndex, currentValue: value, explanation: `La función hash asigna ${value} a la cubeta ${bucketIndex}.` });
   });
 
-  const targetBucket = bucketFor(target);
-  addStep({ activeBucket: targetBucket, currentValue: target, explanation: `Para buscar ${target}, calculamos su cubeta: ${target} módulo ${bucketCount} = ${targetBucket}.` });
+  const targetBucket = bucketFor(numericTarget);
+  addStep({ activeBucket: targetBucket, currentValue: numericTarget, explanation: `Para buscar ${numericTarget}, calculamos su cubeta: ${numericTarget} módulo ${bucketCount} = ${targetBucket}.` });
   const chain = buckets[targetBucket];
   for (let index = 0; index < chain.length; index += 1) {
-    const found = chain[index] === target;
-    addStep({ activeBucket: targetBucket, activeChainIndex: index, currentValue: target, status: found ? 'found' : undefined, explanation: found ? `La cadena de la cubeta ${targetBucket} contiene ${target}.` : `Revisamos ${chain[index]}; no coincide, seguimos por la cadena de colisiones.` });
+    const found = chain[index] === numericTarget;
+    addStep({ activeBucket: targetBucket, activeChainIndex: index, currentValue: numericTarget, status: found ? 'found' : undefined, explanation: found ? `La cadena de la cubeta ${targetBucket} contiene ${numericTarget}.` : `Revisamos ${chain[index]}; no coincide, seguimos por la cadena de colisiones.` });
     if (found) return steps;
   }
 
-  addStep({ activeBucket: targetBucket, currentValue: target, status: 'missing', explanation: `La cubeta ${targetBucket} no contiene ${target}; el valor no está en la tabla.` });
+  addStep({ activeBucket: targetBucket, currentValue: numericTarget, status: 'missing', explanation: `La cubeta ${targetBucket} no contiene ${numericTarget}; el valor no está en la tabla.` });
   return steps;
 }
 

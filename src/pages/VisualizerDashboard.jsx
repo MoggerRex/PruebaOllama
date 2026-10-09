@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import AlgorithmCanvas from '../components/common/AlgorithmCanvas.jsx';
+import SpeechControls from '../components/common/SpeechControls.jsx';
 import useAlgorithmSimulation from '../hooks/useAlgorithmSimulation.js';
 import { fetchAlgorithmOverview, LLAMA_PERSONALITIES } from '../services/llamaService.js';
 
@@ -38,7 +39,7 @@ export default function VisualizerDashboard() {
   const [explanationTab, setExplanationTab] = useState('step');
   const activeInfo = ALGORITHMS.find((algorithm) => algorithm.id === activeAlgorithm);
   const overviewRequestKey = `${activeInfo.id}:${selectedCharacter.name}`;
-  const overview = overviewResult?.key === overviewRequestKey ? overviewResult.text : '';
+  const overview = overviewResult?.key === overviewRequestKey && overviewResult?.requestVersion === overviewRequestVersion ? overviewResult.text : '';
   const overviewLoading = overviewResult?.key !== overviewRequestKey || overviewResult?.requestVersion !== overviewRequestVersion;
   const { steps, currentStepIndex, currentStep, setCurrentStepIndex } = useAlgorithmSimulation(activeAlgorithm, arrayInputs, target);
   const comparisons = steps.slice(0, currentStepIndex + 1).filter((step) => step.comparingIndices?.length).length;
@@ -46,6 +47,7 @@ export default function VisualizerDashboard() {
   const isComplete = currentStepIndex === steps.length - 1;
   const stepTitle = currentStep?.status === 'found' ? 'Elemento encontrado' :
     currentStep?.status === 'missing' ? 'Búsqueda finalizada' :
+      currentStep?.status === 'invalid' ? 'Objetivo no válido' :
       isComplete ? 'Algoritmo completado' :
         currentStepIndex === 0 ? 'Inicio' : 'En progreso';
   const visualGuide = activeAlgorithm === 'quicksort'
@@ -226,15 +228,6 @@ export default function VisualizerDashboard() {
                   <button type="button" role="tab" aria-selected={explanationTab === 'step'} onClick={() => setExplanationTab('step')} className={`border-b-1 px-3 py-2.5 text-[10px] font-semibold transition-colors ${explanationTab === 'step' ? 'border-sky-600 text-sky-700' : 'border-transparent text-zinc-500 hover:text-zinc-800'}`}>Paso a paso</button>
                   <button type="button" role="tab" aria-selected={explanationTab === 'llama'} onClick={() => setExplanationTab('llama')} className={`border-b-1 px-3 py-2.5 text-[10px] font-semibold transition-colors ${explanationTab === 'llama' ? 'border-sky-600 text-sky-700' : 'border-transparent text-zinc-500 hover:text-zinc-800'}`}>Descripción Llama</button>
                 </div>
-                {explanationTab === 'llama' && (
-                  <button type="button" disabled title="Reproductor de voz próximamente" aria-label="Reproducir descripción en voz alta, próximamente" className="grid h-8 w-8 shrink-0 cursor-not-allowed place-items-center border border-zinc-200 text-zinc-400 opacity-70">
-                    <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M11 5 6 9H3v6h3l5 4V5Z" />
-                      <path d="M15.5 8.5a5 5 0 0 1 0 7" />
-                      <path d="M18.5 5.5a9 9 0 0 1 0 13" />
-                    </svg>
-                  </button>
-                )}
               </div>
 
               {explanationTab === 'step' ? (
@@ -272,6 +265,7 @@ export default function VisualizerDashboard() {
                     className="mt-3 border border-sky-200 bg-sky-50 px-2.5 py-1.5 text-[11px] font-semibold text-sky-800 transition hover:border-sky-400 hover:bg-sky-100 disabled:cursor-wait disabled:opacity-50"
                   >{overviewResult?.error && overviewResult.key === overviewRequestKey ? 'Reintentar descripción' : 'Generar de nuevo'}</button>
                   <div aria-live="polite" className={`mt-3 whitespace-pre-line text-xs leading-6 ${overviewResult?.error && overviewResult.key === overviewRequestKey ? 'text-rose-700' : 'text-zinc-600'}`}>{overview || activeInfo.summary}</div>
+                  <SpeechControls key={`${overviewRequestKey}:${overviewRequestVersion}`} text={overview} />
                   <div className="mt-3 space-y-2 border-t border-zinc-100 pt-3">
                     <div><h4 className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Aplicaciones</h4><p className="mt-1 text-xs leading-5 text-zinc-600">{activeInfo.application}</p></div>
                     <div><h4 className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Ventaja principal</h4><p className="mt-1 text-xs leading-5 text-zinc-600">{activeInfo.benefit}</p></div>
